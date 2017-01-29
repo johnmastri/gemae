@@ -8,10 +8,18 @@
         html, body {
             margin: 0;
             padding: 0;
+            width: 100%;
+            height: 100vh;
         }
 
-        g, p, div, svg {
+        g, p, div, svg, rect, text {
             position: absolute;
+            user-select: none;
+            cursor: default;
+        }
+
+        text {
+            pointer-events: none;
         }
     </style>
     <script src="js/libraries/Snap.svg-0.4.1/Snap.svg-0.4.1/dist/snap.svg.js"></script>
