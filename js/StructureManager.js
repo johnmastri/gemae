@@ -17,21 +17,88 @@ module.exports = Backbone.View.extend({
 
     add : function(n) {
 
-        this.structures.push(n);
-        this.update();
+        var o = {};
+        o.node = n;
+        o.group = this.create();
+        this.structures.push(o);
     },
 
-    update : function() {
+    create : function() {
 
-        for(var a = 0 ; a < this.structures.length ; a++) {
+        var g = s.group();
 
-            var c = s.circle(10,a*20,10).attr({
-                fill:"#000"
-            })
+        var c = s.circle(0,0,10).attr({
+            fill:"#000"
+        });
 
+        g.add(c);
+
+        $t.set(g.node, {
+            y: (this.structures.length * 20) + 30
+        });
+
+        return g;
+
+    },
+
+/*    updateInputConnections : function() {
+
+     console.log(this.structures.length, " STRUCKS");
+
+     for(var a = 0 ; a < this.structures.length ; a++) {
+
+     console.log(this.structures[a].node.input_connections.length, " LENGHT");
+
+     for (var b = 0; b < this.structures[a].node.input_connections.length; b++) {
+
+     console.log("ANIMTION");
+
+     var c = s.circle(0, 0, 10).attr({
+     fill: "#FFF"
+     });
+
+     $t.set(c.node, {
+     x: 20 * b
+     });
+
+     console.log(this.structures[a].group, " GROU");
+
+     this.structures[a].group.add(c);
+     }
+     }
+
+     },*/
+
+    updateInputConnection : function(node) {
+
+        function isNode(element) {
+
+            return element.node.id == node.id;
         }
 
+        var str = this.structures.find(isNode); // 130
+        console.log(str, " SR");
+
+        //for(var a = 0 ; a < str.node.input_connections.length ; a++) {
+
+            console.log("FOR FUCKS SAKE");
+
+            var c = s.circle(0, 0, 10).attr({
+                fill: "#FFF"
+            });
+
+            $t.set(c.node, {
+                x: 20 * str.group.children().length
+            });
+
+            str.group.add(c);
+
+
+       // }
+
     },
+
+
 
     render: function() {
 

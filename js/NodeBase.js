@@ -8,15 +8,16 @@ module.exports = Backbone.View.extend({
 
     initialize: function(obj){
 
-            this.data = obj;
+        this.data = obj;
+
+        this.id = Math.round(Math.random() * 10000);
+
+        this.output_connections = [];
+        this.input_connections = [];
 
         console.log(this.data.type, " TYPE");
 
         this.group = s.group();
-        /*$t.set(this.group.node, {
-            x: (this.data.num * 100),
-            y: Math.random() * 200
-        });*/
 
         var fill;
 
@@ -45,7 +46,7 @@ module.exports = Backbone.View.extend({
         this.group.add(this.circle);
 
         // adds node type to structure manager
-        if(this.data.type == "structure") {
+        if(this.data.type === "structure") {
             CM.sm.add(this);
         }
 
@@ -93,8 +94,6 @@ module.exports = Backbone.View.extend({
 
         }
 
-        this.output_connections = [];
-        this.input_connections = [];
 
             //
 /*

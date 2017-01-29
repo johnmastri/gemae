@@ -95,7 +95,7 @@ module.exports = Backbone.View.extend({
                 if (Draggable.hitTest(this.hit_circle.node, i.connector_point.node) && n != this) {
                     console.log("HIT");
                     this.last_n = n;
-                    this.last_i = i;//.mini_circle_l.node;
+                    //this.last_i = i;//.mini_circle_l.node;
                     return;
                 } else {
                     this.last_n = null;
@@ -126,10 +126,16 @@ module.exports = Backbone.View.extend({
 
         if(this.last_n) {
 
+            console.log(this.last_n, " LAST N");
+
             this.drawLine();
 
-            this.data.node.input_connections.push(this.last_n);
-            this.last_n.output_connections.push(this.data.node);
+            this.data.node.output_connections.push(this.last_n);
+            this.last_n.input_connections.push(this.data.node);
+
+            console.log(this.last_n, " LENGHT OF IMNPUT CONECT")
+
+            CM.sm.updateInputConnection(this.last_n);
 
             //this.last_n.last_n = this;
         } else {
@@ -182,12 +188,25 @@ module.exports = Backbone.View.extend({
 
         this.drawLine();
 
-        for(var a = 0 ; a < this.data.node.output_connections.length ; a++) {
+        console.log(this.data.node.input_connections.length, "UPDATE");
 
-            var c = this.data.node.output_connections[a];
+        for(var a = 0 ; a < this.data.node.input_connections.length ; a++) {
+
+            var c = this.data.node.input_connections[a];
             for(var b in c.outputs) c.outputs[b].drawLine();
 
         }
+
+        //if(this.last_n) {
+
+           /* for (var a = 0; a < this.last_n.input_connections.length; a++) {
+
+                var c = this.data.node.input_connections[a];
+                for (var b in c.inputs) c.inputs[b].drawLine();
+
+            }*/
+
+        //}
 
     },
 

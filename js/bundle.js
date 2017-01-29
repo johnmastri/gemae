@@ -96,7 +96,7 @@ module.exports = Backbone.View.extend({
                 if (Draggable.hitTest(this.hit_circle.node, i.connector_point.node) && n != this) {
                     console.log("HIT");
                     this.last_n = n;
-                    this.last_i = i;//.mini_circle_l.node;
+                    //this.last_i = i;//.mini_circle_l.node;
                     return;
                 } else {
                     this.last_n = null;
@@ -127,10 +127,16 @@ module.exports = Backbone.View.extend({
 
         if(this.last_n) {
 
+            console.log(this.last_n, " LAST N");
+
             this.drawLine();
 
-            this.data.node.input_connections.push(this.last_n);
-            this.last_n.output_connections.push(this.data.node);
+            this.data.node.output_connections.push(this.last_n);
+            this.last_n.input_connections.push(this.data.node);
+
+            console.log(this.last_n, " LENGHT OF IMNPUT CONECT")
+
+            CM.sm.updateInputConnection(this.last_n);
 
             //this.last_n.last_n = this;
         } else {
@@ -183,12 +189,25 @@ module.exports = Backbone.View.extend({
 
         this.drawLine();
 
-        for(var a = 0 ; a < this.data.node.output_connections.length ; a++) {
+        console.log(this.data.node.input_connections.length, "UPDATE");
 
-            var c = this.data.node.output_connections[a];
+        for(var a = 0 ; a < this.data.node.input_connections.length ; a++) {
+
+            var c = this.data.node.input_connections[a];
             for(var b in c.outputs) c.outputs[b].drawLine();
 
         }
+
+        //if(this.last_n) {
+
+           /* for (var a = 0; a < this.last_n.input_connections.length; a++) {
+
+                var c = this.data.node.input_connections[a];
+                for (var b in c.inputs) c.inputs[b].drawLine();
+
+            }*/
+
+        //}
 
     },
 
@@ -208,15 +227,16 @@ module.exports = Backbone.View.extend({
 
     initialize: function(obj){
 
-            this.data = obj;
+        this.data = obj;
+
+        this.id = Math.round(Math.random() * 10000);
+
+        this.output_connections = [];
+        this.input_connections = [];
 
         console.log(this.data.type, " TYPE");
 
         this.group = s.group();
-        /*$t.set(this.group.node, {
-            x: (this.data.num * 100),
-            y: Math.random() * 200
-        });*/
 
         var fill;
 
@@ -245,7 +265,7 @@ module.exports = Backbone.View.extend({
         this.group.add(this.circle);
 
         // adds node type to structure manager
-        if(this.data.type == "structure") {
+        if(this.data.type === "structure") {
             CM.sm.add(this);
         }
 
@@ -293,8 +313,6 @@ module.exports = Backbone.View.extend({
 
         }
 
-        this.output_connections = [];
-        this.input_connections = [];
 
             //
 /*
@@ -518,21 +536,88 @@ module.exports = Backbone.View.extend({
 
     add : function(n) {
 
-        this.structures.push(n);
-        this.update();
+        var o = {};
+        o.node = n;
+        o.group = this.create();
+        this.structures.push(o);
     },
 
-    update : function() {
+    create : function() {
 
-        for(var a = 0 ; a < this.structures.length ; a++) {
+        var g = s.group();
 
-            var c = s.circle(10,a*20,10).attr({
-                fill:"#000"
-            })
+        var c = s.circle(0,0,10).attr({
+            fill:"#000"
+        });
 
+        g.add(c);
+
+        $t.set(g.node, {
+            y: (this.structures.length * 20) + 30
+        });
+
+        return g;
+
+    },
+
+/*    updateInputConnections : function() {
+
+     console.log(this.structures.length, " STRUCKS");
+
+     for(var a = 0 ; a < this.structures.length ; a++) {
+
+     console.log(this.structures[a].node.input_connections.length, " LENGHT");
+
+     for (var b = 0; b < this.structures[a].node.input_connections.length; b++) {
+
+     console.log("ANIMTION");
+
+     var c = s.circle(0, 0, 10).attr({
+     fill: "#FFF"
+     });
+
+     $t.set(c.node, {
+     x: 20 * b
+     });
+
+     console.log(this.structures[a].group, " GROU");
+
+     this.structures[a].group.add(c);
+     }
+     }
+
+     },*/
+
+    updateInputConnection : function(node) {
+
+        function isNode(element) {
+
+            return element.node.id == node.id;
         }
 
+        var str = this.structures.find(isNode); // 130
+        console.log(str, " SR");
+
+        //for(var a = 0 ; a < str.node.input_connections.length ; a++) {
+
+            console.log("FOR FUCKS SAKE");
+
+            var c = s.circle(0, 0, 10).attr({
+                fill: "#FFF"
+            });
+
+            $t.set(c.node, {
+                x: 20 * str.group.children().length
+            });
+
+            str.group.add(c);
+
+
+       // }
+
     },
+
+
 
     render: function() {
 
