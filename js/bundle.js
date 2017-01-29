@@ -8,41 +8,296 @@ module.exports = Backbone.View.extend({
 
     initialize: function(obj){
 
+        this.data = obj || null;
+
+        this.group = s.group();
+
+        // adds node type to structure manager
+       /* if(this.data.type == "structure") {
+            CM.sm.add(this);
+        }*/
+
+        this.hit_circle = s.circle(0,0,(this.data.type == "output") ? 10 : 0).attr("fill", "#ff0000");
+
+        $t.set(this.hit_circle.node, {
+            //x: 20,
+           //y: 2.5,
+            cursor:"pointer"
+        });
+
+        this.hit = Draggable.create(this.hit_circle.node, {
+            type:"x,y",
+            edgeResistance:0.65,
+            //bounds:s.node,
+            //throwProps:true,
+            onDragStart: this.handleDragStart,
+            onDragStartScope: this,
+            onDrag: this.handleDrag,
+            onDragScope: this,
+            onDragEnd : this.handleDragEnd,
+            onDragEndScope : this
+        });
+
+        this.connector_point = s.circle(0,0,5);//.attr("data-num", this.data.num);
+
+        $t.set(this.connector_point.node, {
+            pointerEvents:"none"
+        });
+
+        this.line = s.line(0,0,0,0).attr({strokeWidth:5,stroke:"black",strokeLinecap:"round", pointerEvents:"none"});
+        this.group.add(this.hit_circle, this.connector_point, this.line);
+
+        this.connections = [];
+        this.connectors = [];
+
+        this.last_n = null;
+        this.last_i = null;
+
+    },
+
+    handleMouseUp : function(event) {
+
+        $(s.node).off("mousemove", $.proxy(this.handleMouseMove, this));
+
+    },
+
+    handleDragStart : function(event) {
+
+        event.stopImmediatePropagation();
+
+        var x = event.target._gsTransform.x;
+        var y = event.target._gsTransform.y;
+
+        this.start_x = event.clientX - x;
+        this.start_y = event.clientY - y;
+
+    },
+
+    handleDrag : function(event) {
+
+        event.stopImmediatePropagation();
+
+        var x2 = event.clientX - this.start_x || 0;
+        var y2 = event.clientY - this.start_y || 0;
+
+        this.line.attr({
+            x2: x2,
+            y2: y2
+        });
+
+        for(var a = 0 ; a < CM.designer.nodes.length ; a++) {
+
+            var n = CM.designer.nodes[a];
+
+            for(var b = 0 ; b < n.inputs.length ; b++) {
+                
+                var i = n.inputs[b];
+
+                if (Draggable.hitTest(this.hit_circle.node, i.connector_point.node) && n != this) {
+                    console.log("HIT");
+                    this.last_n = n;
+                    this.last_i = i;//.mini_circle_l.node;
+                    return;
+                } else {
+                    this.last_n = null;
+                    this.last_i = null;
+                }
+
+            }
+
+        }
+
+    },
+
+    handleDragEnd : function(event) {
+
+       /* var x = this.last_n.group.node._gsTransform.x - this.group.node._gsTransform.x - 20;
+        var y = this.last_n.group.node._gsTransform.y - this.group.node._gsTransform.y + 2.5;
+
+
+        $t.set(this.hit_circle.node, {
+            x: x,
+            y: y
+        });
+
+        this.line.attr({
+            x2: x,
+            y2: y
+        });*/
+
+        if(this.last_n) {
+
+            this.drawLine();
+
+            this.data.node.input_connections.push(this.last_n);
+            this.last_n.output_connections.push(this.data.node);
+
+            //this.last_n.last_n = this;
+        } else {
+
+            $t.to(this.hit_circle.node, .2, {
+                x: 0,
+                y: 0,
+                onUpdate : this.updateLine,
+                onUpdateScope : this,
+                ease: Circ.easeInOut
+            })
+
+        }
+
+    },
+
+    updateLine : function() {
+
+        this.line.attr({
+            x2: this.hit_circle.node._gsTransform.x,
+            y2: this.hit_circle.node._gsTransform.y
+        });
+
+    },
+
+
+    drawLine : function() {
+
+        if(this.last_n) {
+
+            var x = this.last_n.group.node._gsTransform.x - this.data.node.group.node._gsTransform.x - this.group.node._gsTransform.x + this.last_n.inputs[0].group.node._gsTransform.x;
+            var y = this.last_n.group.node._gsTransform.y - this.data.node.group.node._gsTransform.y - this.group.node._gsTransform.y;
+
+
+            $t.set(this.hit_circle.node, {
+                x: x,
+                y: y
+            });
+
+            this.line.attr({
+                x2: x,
+                y2: y
+            });
+
+        }
+
+    },
+
+    update : function() {
+
+        this.drawLine();
+
+        for(var a = 0 ; a < this.data.node.output_connections.length ; a++) {
+
+            var c = this.data.node.output_connections[a];
+            for(var b in c.outputs) c.outputs[b].drawLine();
+
+        }
+
+    },
+
+    render: function() {
+
+    }
+
+});
+},{"backbone":10,"jquery":12}],2:[function(require,module,exports){
+"use strict";
+
+var $ = require('jquery');
+var Backbone = require('backbone');
+var Connector = require("./Connector");
+
+module.exports = Backbone.View.extend({
+
+    initialize: function(obj){
+
             this.data = obj;
 
         console.log(this.data.type, " TYPE");
 
-            this.group = s.group();
-            /*$t.set(this.group.node, {
-                x: (this.data.num * 100),
-                y: Math.random() * 200
-            });*/
+        this.group = s.group();
+        /*$t.set(this.group.node, {
+            x: (this.data.num * 100),
+            y: Math.random() * 200
+        });*/
 
+        var fill;
 
-            this.circle = s.circle(0, 0, 10);
-            this.circle.attr({
-                fill: (this.data.type == "structure") ? "#bada55" : "#FF00FF",
-                stroke: "#000",
-                strokeWidth: 5
-            });
+        switch(this.data.type) {
 
+            case "field":
+                fill = "#bada55";
+                break;
+
+            case "structure":
+                fill = "#FF00FF";
+                break;
+
+            case "endpoint":
+                fill = "#a2a2a2";
+                break;
+        }
+
+        this.circle = s.circle(0, 0, 10);
+        this.circle.attr({
+            fill: fill,
+            stroke: "#000",
+            strokeWidth: 5
+        });
+
+        this.group.add(this.circle);
+
+        // adds node type to structure manager
         if(this.data.type == "structure") {
             CM.sm.add(this);
         }
 
+        Draggable.create(this.group.node, {
+            type:"x,y",
+            edgeResistance:0.65,
+            trigger:this.circle.node,
+            onDrag : this.handleGroupDrag,
+            onDragScope: this
+            //bounds:s.node,
+            //throwProps:true
+        });
 
-            Draggable.create(this.group.node, {
-                type:"x,y",
-                edgeResistance:0.65,
-                trigger:this.circle.node,
-                onDrag : this.handleGroupDrag,
-                onDragScope: this
-                //bounds:s.node,
-                //throwProps:true
+        //todo: will be defined by node type
+        this.inputs = [];
+        this.outputs = [];
+
+        this.inputs.push(new Connector({
+            type:"input",
+            node: this
+        }));
+
+        for(var a = 0 ; a < this.inputs.length ; a++) {
+
+            var i = this.inputs[a];
+            $t.set(i.group.node, {
+                x: -25
             });
+            this.group.add(i.group);
+
+        }
+
+        this.outputs.push(new Connector({
+            type:"output",
+            node: this
+        }));
+
+        for(a = 0 ; a < this.outputs.length ; a++) {
+
+            i = this.outputs[a];
+            $t.set(i.group.node, {
+                x: 25
+            });
+            this.group.add(i.group);
+
+        }
+
+        this.output_connections = [];
+        this.input_connections = [];
 
             //
-
+/*
             this.hit_circle = s.circle(0,0,10).attr("fill", "#ff0000");
 
             $t.set(this.hit_circle.node, {
@@ -90,14 +345,12 @@ module.exports = Backbone.View.extend({
         this.line = s.line(20,2.5,20,2.5).attr({strokeWidth:5,stroke:"black",strokeLinecap:"round", pointerEvents:"none"});
         //this.mini_circle.mousedown($.proxy(this.handleMouseDown, this));
         //$(this.mini_circle).on("mousedown", $.proxy(this.handleMouseDown, this));
-        this.group.add(this.circle, this.hit_circle, this.mini_circle, this.mini_circle_l, this.line);
+        this.group.add(this.circle, this.hit_circle, this.mini_circle, this.mini_circle_l, this.line);*/
 
-        this.connections = [];
-        this.connectors = [];
 
     },
 
-    handleMouseDown : function(event) {
+    /*handleMouseDown : function(event) {
 
         //$(s.node).on("mousemove", $.proxy(this.handleMouseMove, this));
         //$(s.node).on("mouseup", $.proxy(this.handleMouseUp, this));
@@ -109,9 +362,9 @@ module.exports = Backbone.View.extend({
 
         this.start_x = event.clientX - x;
         this.start_y = event.clientY - y;
-        /*$t.set(this.line.node, {
+        /!*$t.set(this.line.node, {
             x:
-        });*/
+        });*!/
 
 
     },
@@ -162,7 +415,7 @@ module.exports = Backbone.View.extend({
 
     handleDragEnd : function(event) {
 
-       /* var x = this.last_n.group.node._gsTransform.x - this.group.node._gsTransform.x - 20;
+       /!* var x = this.last_n.group.node._gsTransform.x - this.group.node._gsTransform.x - 20;
         var y = this.last_n.group.node._gsTransform.y - this.group.node._gsTransform.y + 2.5;
 
 
@@ -174,7 +427,7 @@ module.exports = Backbone.View.extend({
         this.line.attr({
             x2: x,
             y2: y
-        });*/
+        });*!/
 
         if(this.last_n) {
 
@@ -186,11 +439,11 @@ module.exports = Backbone.View.extend({
             //this.last_n.last_n = this;
         }
 
-    },
+    },*/
 
     handleGroupDrag: function() {
 
-        if(this.connections.length > 0) {
+/*        if(this.connections.length > 0) {
 
                 this.drawLine();
 
@@ -199,6 +452,18 @@ module.exports = Backbone.View.extend({
         for(var a = 0 ; a < this.connectors.length ; a++) {
 
             this.connectors[a].drawLine();
+
+        }*/
+
+        for(var a = 0 ; a < this.inputs.length ; a++) {
+
+            this.inputs[a].update();
+
+        }
+
+        for(a = 0 ; a < this.outputs.length ; a++) {
+
+            this.outputs[a].update();
 
         }
 
@@ -210,7 +475,7 @@ module.exports = Backbone.View.extend({
 
     },
 
-    drawLine : function() {
+   /* drawLine : function() {
 
         var x = this.last_n.group.node._gsTransform.x - this.group.node._gsTransform.x - 20;
         var y = this.last_n.group.node._gsTransform.y - this.group.node._gsTransform.y + 2.5;
@@ -226,14 +491,14 @@ module.exports = Backbone.View.extend({
             y2: y
         });
 
-    },
+    },*/
 
     render: function() {
 
     }
 
 });
-},{"backbone":5,"jquery":7}],2:[function(require,module,exports){
+},{"./Connector":1,"backbone":10,"jquery":12}],3:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -274,33 +539,38 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":5,"jquery":7}],3:[function(require,module,exports){
+},{"backbone":10,"jquery":12}],4:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 var Designer = require("./designer");
 var StructureManager = require("./StructureManager");
+var MASTRI = require("./mastri/Mastri");
 
 Backbone.$ = $;
 
 $(function() {
 
     window.$w = $(window);
+    window.$b = $("body");
     window.$t = TweenMax;
 
     window.CM = {};
 
     window.s = Snap($w.width(), $w.height());
 
+    window.MASTRI = MASTRI;
+
     CM.sm = new StructureManager();
     CM.designer = new Designer();
 
 });
-},{"./StructureManager":2,"./designer":4,"backbone":5,"jquery":7}],4:[function(require,module,exports){
+},{"./StructureManager":3,"./designer":5,"./mastri/Mastri":6,"backbone":10,"jquery":12}],5:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
 var Backbone = require('backbone');
 var NodeBase = require("./NodeBase");
+var NodeMenu = require("./menu/NodeMenu");
 
 module.exports = Backbone.View.extend({
 
@@ -310,28 +580,30 @@ module.exports = Backbone.View.extend({
 
         this.types = ["structure", "field"];
 
+        this.node_count = 0;
+
         this.field = s.group();
 
         for(var a = 0 ; a < 10 ; a++) {
 
-                var r = Math.round( (this.types.length-1) * Math.random() );
+                /*var r = Math.round( (this.types.length-1) * Math.random() );
                 console.log(r, " R");
 
                 var node_base = new NodeBase({
-                    num: a,
+                    num: this.node_count,
                     type: this.types[r]
                 });
 
 
                 $t.set(node_base.group.node, {
-                    x: (a * 100),
+                    x: (this.node_count * 100),
                     y: Math.random() * 200
                 });
 
                 this.nodes.push(node_base);
-
                 this.field.add(node_base.group);
 
+                this.node_count++;*/
 
             }
 
@@ -339,11 +611,36 @@ module.exports = Backbone.View.extend({
             x: 200
         });
 
+        this.node_menu = new NodeMenu();
+
+
         $w.on("resize", $.proxy(this.render, this));
 
         this.render();
     },
 
+    addNode : function(node) {
+
+        console.log(node.data, " DATA");
+
+        var node_base = new NodeBase({
+            num: this.node_count,
+            type: node.data.type
+        });
+
+        $t.set(node_base.group.node, {
+            x: Math.random() * $w.width(),
+            y: Math.random() * 200
+        });
+
+        this.nodes.push(node_base);
+        this.field.add(node_base.group);
+
+        this.node_count++;
+
+        //this.node_menu.close();
+
+    },
 
     render: function() {
 
@@ -351,10 +648,286 @@ module.exports = Backbone.View.extend({
             width: $w.width(),
             height: $w.height()
         });
+
+        this.node_menu.render();
     }
 
 });
-},{"./NodeBase":1,"backbone":5,"jquery":7}],5:[function(require,module,exports){
+},{"./NodeBase":2,"./menu/NodeMenu":9,"backbone":10,"jquery":12}],6:[function(require,module,exports){
+MASTRI = {
+
+    add : function(ele, style) {
+
+        if(ele == undefined) ele = "div";
+        var e = $(document.createElement(ele));
+
+        if(style != undefined) {
+            TweenMax.set(e, style);
+        }
+
+        return e;
+
+    },
+
+    centerX : function(center, to, round, allow) {
+
+        if(round == undefined) round = true;
+        if(allow == undefined) allow = true;
+        var nx = (to.outerWidth() - center.outerWidth()) /2;
+        nx = (round) ? Math.round(nx) : nx;
+        if(allow) TweenMax.set(center, {x: nx});
+
+        return nx;
+
+    },
+
+    centerY : function(center, to, round, allow) {
+
+        if(round == undefined) round = true;
+        if(allow == undefined) allow = true;
+        var ny = (to.outerHeight() - center.outerHeight()) /2;
+        ny = (round) ? Math.round(ny) : ny;
+        if(allow) TweenMax.set(center, {y: ny});
+
+        return ny;
+
+    },
+
+    centerXY : function(center, to, round, scale) {
+
+        this.centerX(center, to, round, scale);
+        this.centerY(center, to, round, scale);
+
+    },
+
+    randomColor : function() {
+
+        return Math.random() * 0xFFFFFF;
+
+    },
+
+    x : function(obj) {
+
+        return (obj[0]._gsTransform) ? obj[0]._gsTransform.x : 0;
+
+    },
+
+    y : function(obj) {
+
+        return (obj[0]._gsTransform) ? obj[0]._gsTransform.y : 0;
+
+    },
+
+    //return x position plus width
+    xw : function(obj) {
+
+        return obj[0]._gsTransform.x + obj.outerWidth();
+
+    },
+
+    //return y position plus height
+    yh : function(obj) {
+
+        return (obj[0]._gsTransform) ? obj[0]._gsTransform.y + obj.outerHeight() : obj.outerHeight();
+
+    },
+
+    mobileCheck : function() {
+        var check = false;
+        (function(a){if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4)))check = true})(navigator.userAgent||navigator.vendor||window.opera);
+        return check;
+    },
+    pixelAspectRatio : function() {
+
+        var ratio = window.devicePixelRatio;
+        if(ratio == undefined) ratio = 1;
+        if(ratio > 1 ) ratio = 2;
+        if($w.width() < 768) ratio = 1;
+
+        return ratio;
+
+    }
+
+}
+
+module.exports = MASTRI;
+},{}],7:[function(require,module,exports){
+"use strict";
+
+var $ = require('jquery');
+var Backbone = require('backbone');
+var MenuListItem = require("./MenuListItem");
+
+module.exports = Backbone.View.extend({
+
+    initialize: function(obj){
+
+       this.data = obj;
+
+       this.group = s.group();
+
+       this.bg = s.rect(0,0,200,100).attr("fill", "#666666");
+
+       this.group.add(this.bg);
+
+        for(var a = 0 ; a < this.data.entries.length ; a++) {
+            var mli = new MenuListItem(
+                {
+                    type: this.data.type,
+                    entry:this.data.entries[a]
+                });
+            $t.set(mli.group.node, {
+                y: a * 25
+            });
+            this.group.add(mli.group);
+        }
+
+    },
+
+    render: function() {
+
+
+    }
+
+});
+},{"./MenuListItem":8,"backbone":10,"jquery":12}],8:[function(require,module,exports){
+"use strict";
+
+var $ = require('jquery');
+var Backbone = require('backbone');
+
+module.exports = Backbone.View.extend({
+
+    initialize: function(obj){
+
+        this.data = obj;
+
+        this.group = s.group();
+
+        this.bg = s.rect(0,0,150,20).attr("fill", "#FFFFFF");
+
+        this.title = s.text(0,15,obj.entry.name);
+
+        this.group.add(this.bg, this.title);
+
+        this.$group = $(this.group.node);
+        $t.set(this.bg.node, {
+            pointerEvents:"auto",
+            cursor:"pointer"
+        });
+        this.$group.on("click", $.proxy(this.handleClick, this));
+
+    },
+
+    handleClick : function(event) {
+
+        console.log("CLICK");
+        CM.designer.addNode(this);
+
+    },
+
+    render: function() {
+
+
+    }
+
+});
+},{"backbone":10,"jquery":12}],9:[function(require,module,exports){
+"use strict";
+
+var $ = require('jquery');
+var Backbone = require('backbone');
+var MenuList = require("./MenuList");
+
+module.exports = Backbone.View.extend({
+
+    initialize: function(){
+
+        this.menu = [
+            {
+              name : "Fields",
+              type: "field",
+              entries: [
+                  {name: "Text"},
+                  {name: "Number"},
+                  {name: "Color"},
+                  {name: "Image"}
+                ]
+            },{
+                name : "Structures",
+                type: "structure",
+                entries : [
+                    {name : "Structure"},
+                    {name : "Group"},
+                    {name : "Populate Group"}
+                ]
+            },{
+                name : "Endpoints",
+                type: "endpoint",
+                entries: [
+                    {name : "Endpoint"},
+                    {name : "Filter"}
+                ]
+            }
+
+        ];
+
+        this.menu_lists = [];
+
+        this.group = s.group();
+
+        for(var a = 0 ; a < this.menu.length ; a++) {
+
+            var ml = new MenuList(this.menu[a]);
+            $t.set(ml.group.node, {
+                x: a * 202
+            });
+
+            this.group.add(ml.group);
+
+            this.menu_lists.push(ml);
+
+        }
+
+        console.log($b.height());
+
+        //this.render();
+
+        this.close_btn = s.rect(0,0,30,30);
+        $t.set(this.close_btn.node, {
+           x: $(this.group.node).width() - $(this.close_btn.node).width() - 1,
+            y: -34,
+            pointerEvents:"auto",
+            cursor:"pointer"
+        });
+        $(this.close_btn.node).on("click", $.proxy(this.handleClose, this));
+        this.group.add(this.close_btn);
+
+    },
+
+    handleClose : function() {
+
+       this.close();
+
+    },
+
+    close : function() {
+
+        $t.to(this.group.node, .2, {
+            autoAlpha: 0
+        })
+
+    },
+
+    render: function() {
+
+
+        MASTRI.centerXY($(this.group.node), $b);
+
+    }
+
+});
+},{"./MenuList":7,"backbone":10,"jquery":12}],10:[function(require,module,exports){
 (function (global){
 //     Backbone.js 1.3.3
 
@@ -2278,7 +2851,7 @@ module.exports = Backbone.View.extend({
 });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"jquery":7,"underscore":6}],6:[function(require,module,exports){
+},{"jquery":12,"underscore":11}],11:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -3828,7 +4401,7 @@ module.exports = Backbone.View.extend({
   }
 }.call(this));
 
-},{}],7:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.1.1
  * https://jquery.com/
@@ -14050,4 +14623,4 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}]},{},[3]);
+},{}]},{},[4]);
