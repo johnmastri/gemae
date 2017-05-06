@@ -2,31 +2,31 @@
 
 var $ = require('jquery');
 var Backbone = require('backbone');
-var MenuListItem = require("./MenuListItem");
+var Designer = require("./Designer");
+var StructureManager = require("./StructureManager");
+
 
 module.exports = Backbone.View.extend({
 
-    initialize: function(obj){
+    initialize: function(){
 
-       this.data = obj;
+/*        $t.set(this.$el, {
+            width: "100%",
+            height: "100%",
+            backgroundColor:"blue",
+            color:"white"
+        });
 
-       this.group = s.group();
+        this.$el.html("THIS IS THE DESIGN SECTION");*/
 
-       this.bg = s.rect(0,0,200,100).attr("fill", "#666666");
+        this.group = s.group();
+        this.group.attr({name:"design_mode"});
 
-       this.group.add(this.bg);
+        this.bg = s.rect(0,0,$w.width(),$w.height()).attr("fill", "#999999");
+        this.group.add(this.bg);
 
-        for(var a = 0 ; a < this.data.entries.length ; a++) {
-            var mli = new MenuListItem(
-                {
-                    type: this.data.type,
-                    entry:this.data.entries[a]
-                });
-            $t.set(mli.group.node, {
-                y: a * 25
-            });
-            this.group.add(mli.group);
-        }
+        CM.sm = new StructureManager(this);
+        CM.designer = new Designer(this);
 
     },
 

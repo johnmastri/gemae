@@ -7,7 +7,7 @@ var NodeMenu = require("./menu/NodeMenu");
 
 module.exports = Backbone.View.extend({
 
-    initialize: function(){
+    initialize: function(ref){
 
         this.nodes = [];
 
@@ -16,6 +16,7 @@ module.exports = Backbone.View.extend({
         this.node_count = 0;
 
         this.field = s.group();
+        this.field.appendTo(ref.group);
 
         for(var a = 0 ; a < 10 ; a++) {
 
@@ -45,7 +46,8 @@ module.exports = Backbone.View.extend({
         });
 
         this.node_menu = new NodeMenu();
-
+       //console.log(this.node_menu.group, " NODE MENU GROUP");
+        this.field.add(this.node_menu.group);
 
         $w.on("resize", $.proxy(this.render, this));
 

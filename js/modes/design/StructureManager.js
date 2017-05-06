@@ -5,13 +5,19 @@ var Backbone = require('backbone');
 
 module.exports = Backbone.View.extend({
 
-    initialize: function(){
+    initialize: function(ref){
 
         this.structures = [];
+
+        this.group = s.group();
 
         this.m = s.rect("0%", 0, "20%", 200).attr({
             fill:"#888888"
         });
+
+        this.group.add(this.m);
+
+        this.group.appendTo(ref.group);
         
     },
 

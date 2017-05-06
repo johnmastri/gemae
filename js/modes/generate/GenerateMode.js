@@ -2,9 +2,6 @@
 
 var $ = require('jquery');
 var Backbone = require('backbone');
-var Designer = require("./Designer");
-var StructureManager = require("./StructureManager");
-
 
 module.exports = Backbone.View.extend({
 
@@ -21,11 +18,9 @@ module.exports = Backbone.View.extend({
 
         this.group = s.group();
 
-        this.bg = s.rect(0,0,$w.width(),$w.height()).attr("fill", "#999999");
-        this.group.add(this.bg);
-
-        CM.sm = new StructureManager();
-        CM.designer = new Designer();
+        this.bg = s.rect(0,0,$w.width(),$w.height()).attr("fill", "#8a600a");
+        this.title = s.text(0,30,"GENERATE MODE");
+        this.group.add(this.bg, this.title);
 
     },
 
