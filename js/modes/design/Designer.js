@@ -42,7 +42,7 @@ module.exports = Backbone.View.extend({
             }
 
         $t.set(this.field.node, {
-            x: 200
+            //x: 200
         });
 
         this.node_menu = new NodeMenu();
@@ -60,13 +60,16 @@ module.exports = Backbone.View.extend({
 
         var node_base = new NodeBase({
             num: this.node_count,
-            type: node.data.type
+            type: node.data.type,
+            position: {
+                x: Math.random() * $w.width(),
+                y: Math.random() * 200
+            }
         });
 
-        $t.set(node_base.group.node, {
-            x: Math.random() * $w.width(),
-            y: Math.random() * 200
-        });
+/*        $t.set(node_base.group.node, {
+
+        });*/
 
         this.nodes.push(node_base);
         this.field.add(node_base.group);

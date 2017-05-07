@@ -433,7 +433,7 @@ module.exports = Backbone.View.extend({
             }
 
         $t.set(this.field.node, {
-            x: 200
+            //x: 200
         });
 
         this.node_menu = new NodeMenu();
@@ -451,13 +451,16 @@ module.exports = Backbone.View.extend({
 
         var node_base = new NodeBase({
             num: this.node_count,
-            type: node.data.type
+            type: node.data.type,
+            position: {
+                x: Math.random() * $w.width(),
+                y: Math.random() * 200
+            }
         });
 
-        $t.set(node_base.group.node, {
-            x: Math.random() * $w.width(),
-            y: Math.random() * 200
-        });
+/*        $t.set(node_base.group.node, {
+
+        });*/
 
         this.nodes.push(node_base);
         this.field.add(node_base.group);
@@ -496,7 +499,7 @@ module.exports = Backbone.View.extend({
 
         this.group = s.group();
 
-      /*  $(this.group.node).attr({
+      /* $(this.group.node).attr({
          "contentEditable":"true"
          });*/
 
@@ -537,14 +540,38 @@ module.exports = Backbone.View.extend({
             strokeWidth: 0
         });
 
-       /* var title = s.text(0,15,"TEST");
-        title.attr({"contentEditable" : "true"});
-        $(title.node).css(
+        this.title = s.text(0,15,"TEST");
+        this.title.attr({"contentEditable" : "true"});
+        $(this.title.node).css(
             {
                 "pointer-events" : "auto"
             }
         );
-        */
+
+        //$($b).on("keyup", function() { console.log("HELLLLLO") });
+
+        this.tf = MASTRI.add("input", {
+            position:"absolute",
+            backgroundColor:"transparent",
+            border:"0px none transparent",
+            color:"white",
+            outline:"none",
+            width:100
+            //letterSpacing: ".08em"
+        });
+
+        this.tf.attr({
+            value:"TEST"
+        });
+
+        $b.append(this.tf);
+
+        //window.tf = this.tf;
+
+        console.log(this.data.position);
+
+        $t.set(this.group.node, this.data.position);
+        $t.set(this.tf, this.data.position);
 
        /*
        *
@@ -559,25 +586,36 @@ module.exports = Backbone.View.extend({
         </svg>
        * */
 
-       this.fo = $(document.createElement("foreignObject"));
+       //this.fo = $(document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject'));
 
            /*MASTRI.add("foreignObject", {
            position:"relative",
            backgroundColor:"blue"
        });
+
 */
+
+           /*
+
+      $t.set(this.fo, {
+          pointerEvents:"auto",
+      });
+
        this.fo.attr({
            width:"100",
            height:"100"
        });
 
        this.fo_div = MASTRI.add("div", {
-
        });
        this.fo_div.attr({"xmlns":"http://www.w3.org/1999/xhtml"});
        this.input = MASTRI.add("input", {
-
        });
+
+       this.input.attr({
+           value: "FUCK"
+       });
+
        this.fo.append(this.fo_div);
        this.fo_div.append(this.input);
 
@@ -588,17 +626,28 @@ module.exports = Backbone.View.extend({
 
         $(this.group.node).append(this.fo);
 
+        */
+
+
+        this.group.add(this.rect, this.title);
+
         // adds node type to structure manager
         if(this.data.type == "structure") {
             CM.sm.add(this);
         }
 
-        Draggable.create(this.group.node, {
+        $(this.group.node).on("mousedown", $.proxy(this.mouseDown, this));
+
+       Draggable.create(this.group.node, {
             type:"x,y",
             edgeResistance:0.65,
             trigger:this.rect.node,
             onDrag : this.handleGroupDrag,
-            onDragScope: this
+            onDragScope: this,
+            onDragStart: this.handleDragStart,
+            onDragStartScope : this,
+            onDragEnd: this.handleDragComplete,
+            onDragEndScope : this
             //bounds:s.node,
             //throwProps:true
         });
@@ -631,7 +680,7 @@ module.exports = Backbone.View.extend({
 
             i = this.outputs[a];
             $t.set(i.group.node, {
-                x: 100+ 25
+                x: 100 + 25
             });
             this.group.add(i.group);
 
@@ -693,6 +742,7 @@ module.exports = Backbone.View.extend({
 
 
     },
+
 
     /*handleMouseDown : function(event) {
 
@@ -785,6 +835,34 @@ module.exports = Backbone.View.extend({
 
     },*/
 
+    handleDragStart : function() {
+
+        console.log("MOUSE DOWN");
+
+       /* $t.set(this.title.node, {
+            autoAlpha:1
+        });*/
+
+       CM.design_mode.group.add(this.group);
+
+        $t.set(this.tf, {
+            autoAlpha:0
+        });
+    },
+
+    handleDragComplete : function() {
+
+        console.log("MOUSE DOWN");
+
+        /* $t.set(this.title.node, {
+         autoAlpha:1
+         });*/
+
+        $t.set(this.tf, {
+            autoAlpha:1
+        });
+    },
+
     handleGroupDrag: function() {
 
 /*        if(this.connections.length > 0) {
@@ -810,6 +888,12 @@ module.exports = Backbone.View.extend({
             this.outputs[a].update();
 
         }
+
+        $t.set(this.tf, {
+            x: MASTRI.x($(this.group.node)) + 0 + 0,
+            y: MASTRI.y($(this.group.node)) + 0
+        });
+
 
         /*for(var a = 0 ; a < this.connections.length ; a++) {
 
