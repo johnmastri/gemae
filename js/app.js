@@ -20,7 +20,19 @@ $(function() {
 
     window.s = Snap($w.width(), $w.height());
 
-    window.MASTRI = MASTRI;
+    window.MASTRI = new MASTRI();
+
+    window.main = window.MASTRI.add("div", {
+        width:"100%",
+        height:"100%"
+    });
+    window.main.appendTo($b);
+
+/*    window.main.attr({
+        "contentEditable":"true"
+    });*/
+
+    window.main.append(window.s.node);
 
     //CM.sm = new StructureManager();
     //CM.designer = new Designer();
@@ -30,7 +42,7 @@ $(function() {
     CM.populate_mode = new PopulateMode();
     CM.generate_mode = new GenerateMode();
 
-    CM.mode_group.add(CM.design_mode.group, CM.populate_mode.group, CM.generate_mode.group);
+    CM.mode_group.add(CM.populate_mode.group, CM.generate_mode.group, CM.design_mode.group);
 
     CM.navigation = new Navigation();
 

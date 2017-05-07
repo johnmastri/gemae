@@ -34,6 +34,7 @@ module.exports = Backbone.View.extend({
             var c = s.circle(10,a*20,10).attr({
                 fill:"#000"
             })
+            this.group.add(c);
 
         }
 

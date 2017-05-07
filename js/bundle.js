@@ -21,7 +21,19 @@ $(function() {
 
     window.s = Snap($w.width(), $w.height());
 
-    window.MASTRI = MASTRI;
+    window.MASTRI = new MASTRI();
+
+    window.main = window.MASTRI.add("div", {
+        width:"100%",
+        height:"100%"
+    });
+    window.main.appendTo($b);
+
+/*    window.main.attr({
+        "contentEditable":"true"
+    });*/
+
+    window.main.append(window.s.node);
 
     //CM.sm = new StructureManager();
     //CM.designer = new Designer();
@@ -31,13 +43,17 @@ $(function() {
     CM.populate_mode = new PopulateMode();
     CM.generate_mode = new GenerateMode();
 
-    CM.mode_group.add(CM.design_mode.group, CM.populate_mode.group, CM.generate_mode.group);
+    CM.mode_group.add(CM.populate_mode.group, CM.generate_mode.group, CM.design_mode.group);
 
     CM.navigation = new Navigation();
 
 });
 },{"./mastri/Mastri":2,"./modes/design/DesignMode":4,"./modes/generate/GenerateMode":11,"./modes/populate/PopulateMode":12,"./navigation/Navigation":13,"backbone":14,"jquery":16}],2:[function(require,module,exports){
-MASTRI = {
+var $ = require('jquery');
+var Backbone = require('backbone');
+
+module.exports = Backbone.View.extend({
+//var MASTRI = {
 
     add : function(ele, style) {
 
@@ -131,10 +147,10 @@ MASTRI = {
 
     }
 
-}
+});
 
-module.exports = MASTRI;
-},{}],3:[function(require,module,exports){
+//module.exports = MASTRI;
+},{"backbone":14,"jquery":16}],3:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -479,6 +495,12 @@ module.exports = Backbone.View.extend({
         console.log(this.data.type, " TYPE");
 
         this.group = s.group();
+
+      /*  $(this.group.node).attr({
+         "contentEditable":"true"
+         });*/
+
+
         /*$t.set(this.group.node, {
             x: (this.data.num * 100),
             y: Math.random() * 200
@@ -501,14 +523,70 @@ module.exports = Backbone.View.extend({
                 break;
         }
 
-        this.circle = s.circle(0, 0, 10);
+       /* this.circle = s.circle(0, 0, 10);
         this.circle.attr({
             fill: fill,
             stroke: "#000",
             strokeWidth: 5
+        });*/
+
+        this.rect = s.rect(0, 0, 100, 33);
+        this.rect.attr({
+            fill: fill,
+            stroke: "#000",
+            strokeWidth: 0
         });
 
-        this.group.add(this.circle);
+       /* var title = s.text(0,15,"TEST");
+        title.attr({"contentEditable" : "true"});
+        $(title.node).css(
+            {
+                "pointer-events" : "auto"
+            }
+        );
+        */
+
+       /*
+       *
+        There is an interesting SVG node called foreignObject, which allows you to place HTML, flash, etc within your SVG code. Try the following:
+
+        <svg width="100%" height="500">
+        <foreignObject x="10" y="10" width="100" height="150">
+        <div xmlns="http://www.w3.org/1999/xhtml">
+        <input></input>
+        </div>
+        </foreignObject>
+        </svg>
+       * */
+
+       this.fo = $(document.createElement("foreignObject"));
+
+           /*MASTRI.add("foreignObject", {
+           position:"relative",
+           backgroundColor:"blue"
+       });
+*/
+       this.fo.attr({
+           width:"100",
+           height:"100"
+       });
+
+       this.fo_div = MASTRI.add("div", {
+
+       });
+       this.fo_div.attr({"xmlns":"http://www.w3.org/1999/xhtml"});
+       this.input = MASTRI.add("input", {
+
+       });
+       this.fo.append(this.fo_div);
+       this.fo_div.append(this.input);
+
+        var tc = '<foreignObject x="10" y="10" width="100" height="150"><div xmlns="http://www.w3.org/1999/xhtml"><input></input></div></foreignObject>';
+        console.log(tc);
+
+        this.group.add(this.rect);//, title);
+
+        $(this.group.node).append(this.fo);
 
         // adds node type to structure manager
         if(this.data.type == "structure") {
@@ -518,7 +596,7 @@ module.exports = Backbone.View.extend({
         Draggable.create(this.group.node, {
             type:"x,y",
             edgeResistance:0.65,
-            trigger:this.circle.node,
+            trigger:this.rect.node,
             onDrag : this.handleGroupDrag,
             onDragScope: this
             //bounds:s.node,
@@ -538,7 +616,7 @@ module.exports = Backbone.View.extend({
 
             var i = this.inputs[a];
             $t.set(i.group.node, {
-                x: -25
+                x: 0
             });
             this.group.add(i.group);
 
@@ -553,7 +631,7 @@ module.exports = Backbone.View.extend({
 
             i = this.outputs[a];
             $t.set(i.group.node, {
-                x: 25
+                x: 100+ 25
             });
             this.group.add(i.group);
 
@@ -801,6 +879,7 @@ module.exports = Backbone.View.extend({
             var c = s.circle(10,a*20,10).attr({
                 fill:"#000"
             })
+            this.group.add(c);
 
         }
 

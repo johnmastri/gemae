@@ -1,4 +1,8 @@
-MASTRI = {
+var $ = require('jquery');
+var Backbone = require('backbone');
+
+module.exports = Backbone.View.extend({
+//var MASTRI = {
 
     add : function(ele, style) {
 
@@ -92,6 +96,6 @@ MASTRI = {
 
     }
 
-}
+});
 
-module.exports = MASTRI;
+//module.exports = MASTRI;
