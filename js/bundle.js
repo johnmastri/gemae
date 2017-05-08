@@ -381,7 +381,8 @@ module.exports = Backbone.View.extend({
         CM.designer = new Designer(this);
 
         this.holder = MASTRI.add("div", {
-
+            position:"relative",
+            width:"200"
         });
 
         $b.append(this.holder);
@@ -389,8 +390,8 @@ module.exports = Backbone.View.extend({
 
         var field_names = [
             "name",
-            "address",
-            "phone"
+            "slug",
+            //"phone"
         ];
 
         this.fields = [];
@@ -398,10 +399,11 @@ module.exports = Backbone.View.extend({
         for(var a = 0 ; a < field_names.length ; a++) {
 
             var i = MASTRI.add("input",{
-                position:"relative"
+                position:"relative",
+                float: "left"
             });
             i.attr({
-                "value" : field_names[a] + "WJATEVER",
+                "value" : field_names[a],
                 "id" : field_names[a]
             });
 
@@ -414,13 +416,14 @@ module.exports = Backbone.View.extend({
             position:"relative",
             width: 100,
             height: 50,
-            backgroundColor: "red"
+            backgroundColor: "red",
+            color:"white",
+            cursor:"pointer",
+            float:"left"
         });
 
+        this.add_btn.html("add endpoint");
         this.add_btn.on("click", $.proxy(this.handleAdd, this));
-
-        console.log("FUCK YOU");
-
         this.add_btn.appendTo(this.holder);
 
     },
@@ -428,14 +431,20 @@ module.exports = Backbone.View.extend({
     handleAdd : function() {
 
         $.ajax({
-            url : "http://localhost:3000/api/" + "case-studies" + Math.round(Math.random()) + "/4/652/5763",
+            url : "http://localhost:3000/api/cs/",
             type: "POST",
             data : {
-                "name": this.fields[0].val()
+ //               "name": this.fields[0].val(),
+ //               "slug" : this.fields[1].val()
+                    "title" : {
+                        "slug" : this.fields[0].val(),
+                        "type" : "String"
+                    }
             },
             success: function(data, textStatus, jqXHR)
             {
-                console.log("HOHOHOHO")
+                console.log("endpoint added");
+                console.log(data, " < data");
             },
             //data - response from server
 

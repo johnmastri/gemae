@@ -45,7 +45,21 @@ const router = express.Router();
 
 /**/
 
-router.route('/*')
+
+router.route('/case-study')
+
+    .get((req, res) => {
+
+        mongoose.model("caseStudy").find({})
+            .exec((err, task) => {
+                if (err){
+                    return res.send(err);
+                }
+                return res.json(task);
+            });
+    })
+
+
     .post((req, res) => {
 
         console.log(req.url);
@@ -55,7 +69,7 @@ router.route('/*')
         * what's the difference between var and const in es6
         * */
 
-        var sp = req.url.split('/');
+        let sp = req.url.split('/');
         sp.shift();
         console.log(sp, ' < SPLIT');
 
@@ -66,7 +80,8 @@ router.route('/*')
           strict : false
         });
 
-        const m = mongoose.model(sp[0], schema);
+        //const m = mongoose.model(sp[0], schema);
+        const m = mongoose.model("caseStudy", schema);
 
         const t = new m({
             name : req.body.name,
