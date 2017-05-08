@@ -23,8 +23,9 @@ app.use(bodyParser.urlencoded({ extended: true }))
 require('./configs/database');
 
 // route registration
-app.use('/api', require('./routes/task'));
+app.use('/api/v1/', require('./routes/endpoints'));
 app.use('/api/design/', require('./routes/design'));
+
 
 // error handling
 

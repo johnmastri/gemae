@@ -128,7 +128,7 @@ router.route('/*')
         });
 
         //endpoint
-
+        //pull available endpoints from designs? if active
 
 
        /* let p, d, o;
