@@ -300,6 +300,7 @@ module.exports = Backbone.View.extend({
 
     handleOptions : function() {
 
+
         if(!this.options.isOpen) {
             this.options.open();
         } else {
