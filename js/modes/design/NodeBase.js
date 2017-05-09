@@ -3,14 +3,15 @@
 var $ = require('jquery');
 var Backbone = require('backbone');
 var Connector = require("./Connector");
+var Options = require("./Options");
 
 module.exports = Backbone.View.extend({
 
     initialize: function(obj){
 
-            this.data = obj;
+        this.data = obj;
 
-        console.log(this.data.type, " TYPE");
+        console.log(this.data.data, " TYPE");
 
         this.group = s.group();
 
@@ -25,45 +26,72 @@ module.exports = Backbone.View.extend({
         });*/
 
         var fill;
+        var accent;
 
-        switch(this.data.type) {
+        switch(this.data.data.type) {
 
             case "field":
-                fill = "#bada55";
+                fill = "#F25F5C";
+                accent = "#DE3E1C";
                 break;
 
             case "structure":
-                fill = "#FF00FF";
+                fill = "#46494C";
+                accent = "#35383B";
                 break;
 
             case "endpoint":
-                fill = "#a2a2a2";
+                fill = "#8B9DB1";
+                accent = "#6D849D";
                 break;
         }
 
-       /* this.circle = s.circle(0, 0, 10);
-        this.circle.attr({
-            fill: fill,
-            stroke: "#000",
-            strokeWidth: 5
-        });*/
 
-        this.rect = s.rect(0, 0, 100, 33);
+        this.rect = s.rect(0, 0, 150, 33);
         this.rect.attr({
-            fill: fill,
-            stroke: "#000",
-            strokeWidth: 0
+            fill: fill
         });
 
-        this.title = s.text(0,15,"TEST");
+/*        this.top_rect = s.rect(0,0,150, 5);
+        this.top_rect.attr({
+            fill: accent
+        });
+        $t.set(this.top_rect.node, {
+            y: -6
+        });*/
+
+        this.options = new Options(this.data.data.entry.options);
+
+        this.label_rect = s.rect(0,0,17,17);
+        this.label_rect.attr({
+            fill: accent
+        });
+        $t.set(this.label_rect.node, {
+           x: 20,
+           y: (33-17)/2
+        });
+
+        this.label = s.text(0,0,this.data.data.entry.label);
+        this.label.attr({
+            fill: "white",
+            fontSize: 10
+        });
+        $t.set(this.label.node, {
+            x: 22,
+            y: 20
+        });
+
+        this.title = s.text(0,15,this.data.data.entry.name);
         this.title.attr({"contentEditable" : "true"});
         $(this.title.node).css(
             {
                 "pointer-events" : "auto"
             }
         );
-
-        //$($b).on("keyup", function() { console.log("HELLLLLO") });
+        $t.set(this.title.node, {
+            x: 20+17+10,
+            y: (33-15)/2 - 2
+        });
 
         this.tf = MASTRI.add("input", {
             position:"absolute",
@@ -71,22 +99,33 @@ module.exports = Backbone.View.extend({
             border:"0px none transparent",
             color:"white",
             outline:"none",
-            width:100
+            width: 60
             //letterSpacing: ".08em"
         });
 
         this.tf.attr({
-            value:"TEST"
+            value:this.data.data.entry.name
         });
+
+        this.options_btn = s.rect(0,0,10,10);
+        this.options_btn.attr({
+            fill:"white"
+        });
+        $t.set(this.options_btn.node, {
+            x: 120,
+            y: (33-10)/2,
+            pointerEvents:"auto",
+            cursor:"pointer"
+        });
+        $(this.options_btn.node).on("click", $.proxy(this.handleOptions, this));
 
         $b.append(this.tf);
 
-        //window.tf = this.tf;
-
-        console.log(this.data.position);
-
         $t.set(this.group.node, this.data.position);
-        $t.set(this.tf, this.data.position);
+        $t.set(this.tf, {
+            x: this.data.position.css.x + 20+17+10,
+            y: this.data.position.css.y + (33-15)/2 - 2
+        });
 
        /*
        *
@@ -143,11 +182,10 @@ module.exports = Backbone.View.extend({
 
         */
 
-
-        this.group.add(this.rect, this.title);
+        this.group.add(  this.rect, this.options.group, this.label_rect, this.label, this.title, this.options_btn);
 
         // adds node type to structure manager
-        if(this.data.type == "structure") {
+        if(this.data.type === "structure") {
             CM.sm.add(this);
         }
 
@@ -156,7 +194,7 @@ module.exports = Backbone.View.extend({
        Draggable.create(this.group.node, {
             type:"x,y",
             edgeResistance:0.65,
-            trigger:this.rect.node,
+            trigger:this.options.top_rect.node,
             onDrag : this.handleGroupDrag,
             onDragScope: this,
             onDragStart: this.handleDragStart,
@@ -180,7 +218,8 @@ module.exports = Backbone.View.extend({
 
             var i = this.inputs[a];
             $t.set(i.group.node, {
-                x: 0
+                x: 0,
+                y:33/2
             });
             this.group.add(i.group);
 
@@ -195,7 +234,8 @@ module.exports = Backbone.View.extend({
 
             i = this.outputs[a];
             $t.set(i.group.node, {
-                x: 100 + 25
+                x: 150,
+                y:33/2
             });
             this.group.add(i.group);
 
@@ -255,6 +295,16 @@ module.exports = Backbone.View.extend({
         //$(this.mini_circle).on("mousedown", $.proxy(this.handleMouseDown, this));
         this.group.add(this.circle, this.hit_circle, this.mini_circle, this.mini_circle_l, this.line);*/
 
+
+    },
+
+    handleOptions : function() {
+
+        if(!this.options.isOpen) {
+            this.options.open();
+        } else {
+            this.options.close();
+        }
 
     },
 
@@ -358,6 +408,8 @@ module.exports = Backbone.View.extend({
             autoAlpha:1
         });*/
 
+       //this.options.open();
+
        CM.design_mode.group.add(this.group);
 
         $t.set(this.tf, {
@@ -405,10 +457,13 @@ module.exports = Backbone.View.extend({
         }
 
         $t.set(this.tf, {
-            x: MASTRI.x($(this.group.node)) + 0 + 0,
-            y: MASTRI.y($(this.group.node)) + 0
+            x: MASTRI.x($(this.group.node)) + MASTRI.x($(this.title.node)),
+            y: MASTRI.y($(this.group.node)) + MASTRI.y($(this.title.node))
         });
-
+     /*   $t.set(this.tf, {
+            x: this.data.position.x + MASTRI.x(this.title.node),
+            y: this.data.position.y + MASTRI.y(this.title.node)
+        });*/
 
         /*for(var a = 0 ; a < this.connections.length ; a++) {
 

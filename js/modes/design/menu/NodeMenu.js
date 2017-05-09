@@ -15,6 +15,7 @@ module.exports = Backbone.View.extend({
               entries: [
                   {
                    name: "Text",
+                   label:"TX",
                    options: [
                        {
                            label: "Min Characters",
@@ -46,6 +47,7 @@ module.exports = Backbone.View.extend({
                    ]},
                   {
                       name: "Number",
+                      label:"NU",
                       options: [
                           {
                               label:"Type",
@@ -70,6 +72,7 @@ module.exports = Backbone.View.extend({
                   },
                   {
                       name: "Color",
+                      label:"CO",
                       options: [
                           {
                               /* probably not necessary */
@@ -83,23 +86,39 @@ module.exports = Backbone.View.extend({
                               defaultValue:"0xFF0000"
                           }
                       ]
-                  },
-                  {name: "Image"}
+                  }
+                  //,
+                  //{name: "Image"}
                 ]
             },{
                 name : "Structures",
                 type: "structure",
                 entries : [
-                    {name : "Structure"},
-                    {name : "Group"},
-                    {name : "Populate Group"}
+                    {
+                        name : "Structure",
+                        label:"ST",
+                        options: []
+                    },
+                    {
+                        name : "Group",
+                        label:"GR",
+                        options: []
+                    }
                 ]
             },{
                 name : "Endpoints",
                 type: "endpoint",
                 entries: [
-                    {name : "Endpoint"},
-                    {name : "Filter"}
+                    {
+                        name : "Endpoint",
+                        label:"EP",
+                        options: []
+                    },
+                    {
+                        name : "Filter",
+                        label:"FI",
+                        options: []
+                    }
                 ]
             }
 

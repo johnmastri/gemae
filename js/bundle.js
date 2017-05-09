@@ -48,7 +48,7 @@ $(function() {
     CM.navigation = new Navigation();
 
 });
-},{"./mastri/Mastri":2,"./modes/design/DesignMode":4,"./modes/generate/GenerateMode":11,"./modes/populate/PopulateMode":12,"./navigation/Navigation":13,"backbone":14,"jquery":16}],2:[function(require,module,exports){
+},{"./mastri/Mastri":2,"./modes/design/DesignMode":4,"./modes/generate/GenerateMode":12,"./modes/populate/PopulateMode":13,"./navigation/Navigation":14,"backbone":15,"jquery":17}],2:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 
@@ -150,7 +150,7 @@ module.exports = Backbone.View.extend({
 });
 
 //module.exports = MASTRI;
-},{"backbone":14,"jquery":16}],3:[function(require,module,exports){
+},{"backbone":15,"jquery":17}],3:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -171,9 +171,10 @@ module.exports = Backbone.View.extend({
 
         this.hit_circle = s.circle(0,0,(this.data.type == "output") ? 10 : 0).attr("fill", "#ff0000");
 
+
         $t.set(this.hit_circle.node, {
             //x: 20,
-           //y: 2.5,
+            y: 0,
             cursor:"pointer"
         });
 
@@ -196,7 +197,7 @@ module.exports = Backbone.View.extend({
             pointerEvents:"none"
         });
 
-        this.line = s.line(0,0,0,0).attr({strokeWidth:5,stroke:"black",strokeLinecap:"round", pointerEvents:"none"});
+        this.line = s.line(0,0,0,0).attr({strokeWidth:1,stroke:"black",strokeLinecap:"round", pointerEvents:"none"});
         this.group.add(this.hit_circle, this.connector_point, this.line);
 
         this.connections = [];
@@ -319,12 +320,12 @@ module.exports = Backbone.View.extend({
 
             $t.set(this.hit_circle.node, {
                 x: x,
-                y: y
+                y: y + 33/2
             });
 
             this.line.attr({
                 x2: x,
-                y2: y
+                y2: y + 33/2
             });
 
         }
@@ -349,7 +350,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":14,"jquery":16}],4:[function(require,module,exports){
+},{"backbone":15,"jquery":17}],4:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -382,15 +383,16 @@ module.exports = Backbone.View.extend({
 
         this.holder = MASTRI.add("div", {
             position:"relative",
-            width:"200"
+            width:"200",
+            clear:"both"
         });
 
-        $b.append(this.holder);
+        //$b.append(this.holder);
 
 
         var field_names = [
             "name",
-            "slug",
+            "slug"
             //"phone"
         ];
 
@@ -462,7 +464,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./Designer":5,"./StructureManager":7,"backbone":14,"jquery":16}],5:[function(require,module,exports){
+},{"./Designer":5,"./StructureManager":8,"backbone":15,"jquery":17}],5:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -519,16 +521,16 @@ module.exports = Backbone.View.extend({
         this.render();
     },
 
-    addNode : function(node) {
+    addNode : function(data) {
 
-        console.log(node.data, " DATA");
+        console.log(data, " DATA");
 
         var node_base = new NodeBase({
             num: this.node_count,
-            type: node.data.type,
+            data: data,
             position: {
-                x: Math.random() * $w.width(),
-                y: Math.random() * 200
+                x: $w.width()/2 - (150/2),//Math.random() * $w.width(),
+                y: $w.height()/3 - (33/2)//Math.random() * 200
             }
         });
 
@@ -556,20 +558,21 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./NodeBase":6,"./menu/NodeMenu":10,"backbone":14,"jquery":16}],6:[function(require,module,exports){
+},{"./NodeBase":6,"./menu/NodeMenu":11,"backbone":15,"jquery":17}],6:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
 var Backbone = require('backbone');
 var Connector = require("./Connector");
+var Options = require("./Options");
 
 module.exports = Backbone.View.extend({
 
     initialize: function(obj){
 
-            this.data = obj;
+        this.data = obj;
 
-        console.log(this.data.type, " TYPE");
+        console.log(this.data.data, " TYPE");
 
         this.group = s.group();
 
@@ -584,45 +587,72 @@ module.exports = Backbone.View.extend({
         });*/
 
         var fill;
+        var accent;
 
-        switch(this.data.type) {
+        switch(this.data.data.type) {
 
             case "field":
-                fill = "#bada55";
+                fill = "#F25F5C";
+                accent = "#DE3E1C";
                 break;
 
             case "structure":
-                fill = "#FF00FF";
+                fill = "#46494C";
+                accent = "#35383B";
                 break;
 
             case "endpoint":
-                fill = "#a2a2a2";
+                fill = "#8B9DB1";
+                accent = "#6D849D";
                 break;
         }
 
-       /* this.circle = s.circle(0, 0, 10);
-        this.circle.attr({
-            fill: fill,
-            stroke: "#000",
-            strokeWidth: 5
-        });*/
 
-        this.rect = s.rect(0, 0, 100, 33);
+        this.rect = s.rect(0, 0, 150, 33);
         this.rect.attr({
-            fill: fill,
-            stroke: "#000",
-            strokeWidth: 0
+            fill: fill
         });
 
-        this.title = s.text(0,15,"TEST");
+/*        this.top_rect = s.rect(0,0,150, 5);
+        this.top_rect.attr({
+            fill: accent
+        });
+        $t.set(this.top_rect.node, {
+            y: -6
+        });*/
+
+        this.options = new Options(this.data.data.entry.options);
+
+        this.label_rect = s.rect(0,0,17,17);
+        this.label_rect.attr({
+            fill: accent
+        });
+        $t.set(this.label_rect.node, {
+           x: 20,
+           y: (33-17)/2
+        });
+
+        this.label = s.text(0,0,this.data.data.entry.label);
+        this.label.attr({
+            fill: "white",
+            fontSize: 10
+        });
+        $t.set(this.label.node, {
+            x: 22,
+            y: 20
+        });
+
+        this.title = s.text(0,15,this.data.data.entry.name);
         this.title.attr({"contentEditable" : "true"});
         $(this.title.node).css(
             {
                 "pointer-events" : "auto"
             }
         );
-
-        //$($b).on("keyup", function() { console.log("HELLLLLO") });
+        $t.set(this.title.node, {
+            x: 20+17+10,
+            y: (33-15)/2 - 2
+        });
 
         this.tf = MASTRI.add("input", {
             position:"absolute",
@@ -630,22 +660,33 @@ module.exports = Backbone.View.extend({
             border:"0px none transparent",
             color:"white",
             outline:"none",
-            width:100
+            width: 60
             //letterSpacing: ".08em"
         });
 
         this.tf.attr({
-            value:"TEST"
+            value:this.data.data.entry.name
         });
+
+        this.options_btn = s.rect(0,0,10,10);
+        this.options_btn.attr({
+            fill:"white"
+        });
+        $t.set(this.options_btn.node, {
+            x: 120,
+            y: (33-10)/2,
+            pointerEvents:"auto",
+            cursor:"pointer"
+        });
+        $(this.options_btn.node).on("click", $.proxy(this.handleOptions, this));
 
         $b.append(this.tf);
 
-        //window.tf = this.tf;
-
-        console.log(this.data.position);
-
         $t.set(this.group.node, this.data.position);
-        $t.set(this.tf, this.data.position);
+        $t.set(this.tf, {
+            x: this.data.position.css.x + 20+17+10,
+            y: this.data.position.css.y + (33-15)/2 - 2
+        });
 
        /*
        *
@@ -702,11 +743,10 @@ module.exports = Backbone.View.extend({
 
         */
 
-
-        this.group.add(this.rect, this.title);
+        this.group.add(  this.rect, this.options.group, this.label_rect, this.label, this.title, this.options_btn);
 
         // adds node type to structure manager
-        if(this.data.type == "structure") {
+        if(this.data.type === "structure") {
             CM.sm.add(this);
         }
 
@@ -715,7 +755,7 @@ module.exports = Backbone.View.extend({
        Draggable.create(this.group.node, {
             type:"x,y",
             edgeResistance:0.65,
-            trigger:this.rect.node,
+            trigger:this.options.top_rect.node,
             onDrag : this.handleGroupDrag,
             onDragScope: this,
             onDragStart: this.handleDragStart,
@@ -739,7 +779,8 @@ module.exports = Backbone.View.extend({
 
             var i = this.inputs[a];
             $t.set(i.group.node, {
-                x: 0
+                x: 0,
+                y:33/2
             });
             this.group.add(i.group);
 
@@ -754,7 +795,8 @@ module.exports = Backbone.View.extend({
 
             i = this.outputs[a];
             $t.set(i.group.node, {
-                x: 100 + 25
+                x: 150,
+                y:33/2
             });
             this.group.add(i.group);
 
@@ -814,6 +856,16 @@ module.exports = Backbone.View.extend({
         //$(this.mini_circle).on("mousedown", $.proxy(this.handleMouseDown, this));
         this.group.add(this.circle, this.hit_circle, this.mini_circle, this.mini_circle_l, this.line);*/
 
+
+    },
+
+    handleOptions : function() {
+
+        if(!this.options.isOpen) {
+            this.options.open();
+        } else {
+            this.options.close();
+        }
 
     },
 
@@ -917,6 +969,8 @@ module.exports = Backbone.View.extend({
             autoAlpha:1
         });*/
 
+       //this.options.open();
+
        CM.design_mode.group.add(this.group);
 
         $t.set(this.tf, {
@@ -964,10 +1018,13 @@ module.exports = Backbone.View.extend({
         }
 
         $t.set(this.tf, {
-            x: MASTRI.x($(this.group.node)) + 0 + 0,
-            y: MASTRI.y($(this.group.node)) + 0
+            x: MASTRI.x($(this.group.node)) + MASTRI.x($(this.title.node)),
+            y: MASTRI.y($(this.group.node)) + MASTRI.y($(this.title.node))
         });
-
+     /*   $t.set(this.tf, {
+            x: this.data.position.x + MASTRI.x(this.title.node),
+            y: this.data.position.y + MASTRI.y(this.title.node)
+        });*/
 
         /*for(var a = 0 ; a < this.connections.length ; a++) {
 
@@ -1000,7 +1057,198 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./Connector":3,"backbone":14,"jquery":16}],7:[function(require,module,exports){
+},{"./Connector":3,"./Options":7,"backbone":15,"jquery":17}],7:[function(require,module,exports){
+"use strict";
+
+var $ = require('jquery');
+var Backbone = require('backbone');
+var Connector = require("./Connector");
+
+module.exports = Backbone.View.extend({
+
+    initialize: function(obj) {
+
+        this.data = obj;
+        this.isOpen = false;
+
+
+        console.log(this.data, " TYPE");
+
+        this.group = s.group();
+
+
+
+        var fill = "#DCDCDD";
+        var accent = "#C9C9CA";
+
+        this.mask = s.rect(0,0,150,100);
+        this.mask.attr({
+            fill:"#fff",
+            pointerEvents:"none",
+        });
+
+        this.group.add(this.mask);
+
+        this.holder = s.group();
+        this.holder.attr({//_group
+            mask: this.mask
+        });
+
+        this.rect = s.rect(0, 0, 150, 100);
+        this.rect.attr({
+            fill: fill
+        });
+
+        this.holder.add(this.rect);
+
+        for(var a = 0 ; a < this.data.length ; a++) {
+
+            var t = s.text(0,0, this.data[a].label);
+            $t.set(t.node, {
+                fontSize : 12,
+                x: 5,
+                y: (20 * a) + 20
+            });
+            this.holder.add(t);
+
+        }
+
+        this.group.add(this.holder);
+
+        this.top_rect = s.rect(0,0,150, 5);
+        this.top_rect.attr({
+            fill: accent
+        });
+        $t.set(this.top_rect.node, {
+            y: -6
+        });
+
+        this.group.add(this.top_rect);
+
+        $t.set(this.rect.node, {
+            height: this.data.length * 20
+        });
+
+        $t.set(this.mask.node, {
+            y: 0,//-this.data.length * 20,
+            height: 0//this.data.length * 40
+        });
+
+
+
+       /* this.top_rect = s.rect(0, 0, 150, 5);
+        this.top_rect.attr({
+            fill: accent
+        });
+        $t.set(this.top_rect.node, {
+            y: -6
+        });
+
+        this.label_rect = s.rect(0, 0, 17, 17);
+        this.label_rect.attr({
+            fill: accent
+        });
+        $t.set(this.label_rect.node, {
+            x: 20,
+            y: (33 - 17) / 2
+        });
+
+        this.label = s.text(0, 0, this.data.data.entry.label);
+        this.label.attr({
+            fill: "white",
+            fontSize: 10
+        });
+        $t.set(this.label.node, {
+            x: 22,
+            y: 20
+        });
+
+        this.title = s.text(0, 15, this.data.data.entry.name);
+        $(this.title.node).css(
+            {
+                "pointer-events": "auto"
+            }
+        );
+        $t.set(this.title.node, {
+            x: 20 + 17 + 10,
+            y: (33 - 15) / 2 - 2
+        });
+
+        this.tf = MASTRI.add("input", {
+            position: "absolute",
+            backgroundColor: "transparent",
+            border: "0px none transparent",
+            color: "white",
+            outline: "none",
+            width: 100
+            //letterSpacing: ".08em"
+        });
+
+        this.tf.attr({
+            value: this.data.data.entry.name
+        });
+
+        $b.append(this.tf);
+
+        //window.tf = this.tf;
+
+        console.log(this.data.position);
+
+        $t.set(this.group.node, this.data.position);
+        console.log(this.data.position, " POSITION");
+        $t.set(this.tf, {
+            x: this.data.position.css.x + 20 + 17 + 10,
+            y: this.data.position.css.y + (33 - 15) / 2 - 2
+        });*/
+
+    },
+
+    open : function() {
+
+        console.log("OPEN");
+
+        $t.to(this.top_rect.node, .4, {
+            y: -$(this.rect.node).height() - 6
+        });
+
+        $t.to(this.holder.node, .4, {
+            y: -$(this.rect.node).height()
+        });
+
+        $t.to(this.mask.node, .4, {
+            y: -this.data.length * 20,
+            height: this.data.length * 40
+        });
+
+        this.isOpen = true;
+
+    },
+
+    close : function() {
+
+        $t.to(this.top_rect.node, .4, {
+            y: -6
+        });
+
+        $t.to(this.holder.node, .4, {
+            y: 0
+        });
+
+        $t.to(this.mask.node, .4, {
+            y: 0,
+            height: 0
+        });
+
+        this.isOpen = false;
+
+    },
+
+    render: function() {
+
+    }
+
+});
+},{"./Connector":3,"backbone":15,"jquery":17}],8:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -1019,8 +1267,13 @@ module.exports = Backbone.View.extend({
         });
 
         this.group.add(this.m);
-
         this.group.appendTo(ref.group);
+
+        $t.set(this.group.node, {
+            autoAlpha:0
+        })
+
+        //console.log("SO FUCK");
         
     },
 
@@ -1048,7 +1301,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":14,"jquery":16}],8:[function(require,module,exports){
+},{"backbone":15,"jquery":17}],9:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -1087,7 +1340,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./MenuListItem":9,"backbone":14,"jquery":16}],9:[function(require,module,exports){
+},{"./MenuListItem":10,"backbone":15,"jquery":17}],10:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -1103,7 +1356,7 @@ module.exports = Backbone.View.extend({
 
         this.bg = s.rect(0,0,150,20).attr("fill", "#FFFFFF");
 
-        this.title = s.text(0,15,obj.entry.name);
+        this.title = s.text(0,15,this.data.entry.name);
 
         this.group.add(this.bg, this.title);
 
@@ -1118,8 +1371,8 @@ module.exports = Backbone.View.extend({
 
     handleClick : function(event) {
 
-        console.log("CLICK");
-        CM.designer.addNode(this);
+        console.log("CLICK", this.data);
+        CM.designer.addNode(this.data);
 
     },
 
@@ -1129,7 +1382,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":14,"jquery":16}],10:[function(require,module,exports){
+},{"backbone":15,"jquery":17}],11:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -1147,6 +1400,7 @@ module.exports = Backbone.View.extend({
               entries: [
                   {
                    name: "Text",
+                   label:"TX",
                    options: [
                        {
                            label: "Min Characters",
@@ -1178,6 +1432,7 @@ module.exports = Backbone.View.extend({
                    ]},
                   {
                       name: "Number",
+                      label:"NU",
                       options: [
                           {
                               label:"Type",
@@ -1202,6 +1457,7 @@ module.exports = Backbone.View.extend({
                   },
                   {
                       name: "Color",
+                      label:"CO",
                       options: [
                           {
                               /* probably not necessary */
@@ -1215,23 +1471,39 @@ module.exports = Backbone.View.extend({
                               defaultValue:"0xFF0000"
                           }
                       ]
-                  },
-                  {name: "Image"}
+                  }
+                  //,
+                  //{name: "Image"}
                 ]
             },{
                 name : "Structures",
                 type: "structure",
                 entries : [
-                    {name : "Structure"},
-                    {name : "Group"},
-                    {name : "Populate Group"}
+                    {
+                        name : "Structure",
+                        label:"ST",
+                        options: []
+                    },
+                    {
+                        name : "Group",
+                        label:"GR",
+                        options: []
+                    }
                 ]
             },{
                 name : "Endpoints",
                 type: "endpoint",
                 entries: [
-                    {name : "Endpoint"},
-                    {name : "Filter"}
+                    {
+                        name : "Endpoint",
+                        label:"EP",
+                        options: []
+                    },
+                    {
+                        name : "Filter",
+                        label:"FI",
+                        options: []
+                    }
                 ]
             }
 
@@ -1292,7 +1564,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./MenuList":8,"backbone":14,"jquery":16}],11:[function(require,module,exports){
+},{"./MenuList":9,"backbone":15,"jquery":17}],12:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -1325,7 +1597,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":14,"jquery":16}],12:[function(require,module,exports){
+},{"backbone":15,"jquery":17}],13:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -1358,7 +1630,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":14,"jquery":16}],13:[function(require,module,exports){
+},{"backbone":15,"jquery":17}],14:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -1428,7 +1700,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":14,"jquery":16}],14:[function(require,module,exports){
+},{"backbone":15,"jquery":17}],15:[function(require,module,exports){
 (function (global){
 //     Backbone.js 1.3.3
 
@@ -3352,7 +3624,7 @@ module.exports = Backbone.View.extend({
 });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"jquery":16,"underscore":15}],15:[function(require,module,exports){
+},{"jquery":17,"underscore":16}],16:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -4902,7 +5174,7 @@ module.exports = Backbone.View.extend({
   }
 }.call(this));
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.1.1
  * https://jquery.com/

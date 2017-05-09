@@ -54,16 +54,16 @@ module.exports = Backbone.View.extend({
         this.render();
     },
 
-    addNode : function(node) {
+    addNode : function(data) {
 
-        console.log(node.data, " DATA");
+        console.log(data, " DATA");
 
         var node_base = new NodeBase({
             num: this.node_count,
-            type: node.data.type,
+            data: data,
             position: {
-                x: Math.random() * $w.width(),
-                y: Math.random() * 200
+                x: $w.width()/2 - (150/2),//Math.random() * $w.width(),
+                y: $w.height()/3 - (33/2)//Math.random() * 200
             }
         });
 

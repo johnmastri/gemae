@@ -13,7 +13,7 @@ module.exports = Backbone.View.extend({
 
         this.bg = s.rect(0,0,150,20).attr("fill", "#FFFFFF");
 
-        this.title = s.text(0,15,obj.entry.name);
+        this.title = s.text(0,15,this.data.entry.name);
 
         this.group.add(this.bg, this.title);
 
@@ -28,8 +28,8 @@ module.exports = Backbone.View.extend({
 
     handleClick : function(event) {
 
-        console.log("CLICK");
-        CM.designer.addNode(this);
+        console.log("CLICK", this.data);
+        CM.designer.addNode(this.data);
 
     },
 

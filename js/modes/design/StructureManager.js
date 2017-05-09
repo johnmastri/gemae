@@ -16,8 +16,13 @@ module.exports = Backbone.View.extend({
         });
 
         this.group.add(this.m);
-
         this.group.appendTo(ref.group);
+
+        $t.set(this.group.node, {
+            autoAlpha:0
+        })
+
+        //console.log("SO FUCK");
         
     },
 

@@ -18,9 +18,10 @@ module.exports = Backbone.View.extend({
 
         this.hit_circle = s.circle(0,0,(this.data.type == "output") ? 10 : 0).attr("fill", "#ff0000");
 
+
         $t.set(this.hit_circle.node, {
             //x: 20,
-           //y: 2.5,
+            y: 0,
             cursor:"pointer"
         });
 
@@ -43,7 +44,7 @@ module.exports = Backbone.View.extend({
             pointerEvents:"none"
         });
 
-        this.line = s.line(0,0,0,0).attr({strokeWidth:5,stroke:"black",strokeLinecap:"round", pointerEvents:"none"});
+        this.line = s.line(0,0,0,0).attr({strokeWidth:1,stroke:"black",strokeLinecap:"round", pointerEvents:"none"});
         this.group.add(this.hit_circle, this.connector_point, this.line);
 
         this.connections = [];
@@ -166,12 +167,12 @@ module.exports = Backbone.View.extend({
 
             $t.set(this.hit_circle.node, {
                 x: x,
-                y: y
+                y: y + 33/2
             });
 
             this.line.attr({
                 x2: x,
-                y2: y
+                y2: y + 33/2
             });
 
         }

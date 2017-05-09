@@ -30,15 +30,16 @@ module.exports = Backbone.View.extend({
 
         this.holder = MASTRI.add("div", {
             position:"relative",
-            width:"200"
+            width:"200",
+            clear:"both"
         });
 
-        $b.append(this.holder);
+        //$b.append(this.holder);
 
 
         var field_names = [
             "name",
-            "slug",
+            "slug"
             //"phone"
         ];
 
