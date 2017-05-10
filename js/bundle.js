@@ -48,7 +48,7 @@ $(function() {
     CM.navigation = new Navigation();
 
 });
-},{"./mastri/Mastri":2,"./modes/design/DesignMode":4,"./modes/generate/GenerateMode":12,"./modes/populate/PopulateMode":13,"./navigation/Navigation":14,"backbone":15,"jquery":17}],2:[function(require,module,exports){
+},{"./mastri/Mastri":2,"./modes/design/DesignMode":4,"./modes/generate/GenerateMode":16,"./modes/populate/PopulateMode":17,"./navigation/Navigation":18,"backbone":19,"jquery":21}],2:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 
@@ -150,7 +150,7 @@ module.exports = Backbone.View.extend({
 });
 
 //module.exports = MASTRI;
-},{"backbone":15,"jquery":17}],3:[function(require,module,exports){
+},{"backbone":19,"jquery":21}],3:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -249,7 +249,7 @@ module.exports = Backbone.View.extend({
                 if (Draggable.hitTest(this.hit_circle.node, i.connector_point.node) && n != this) {
                     console.log("HIT");
                     this.last_n = n;
-                    this.last_i = i;//.mini_circle_l.node;
+                    //this.last_i = i;//.mini_circle_l.node;
                     return;
                 } else {
                     this.last_n = null;
@@ -280,10 +280,16 @@ module.exports = Backbone.View.extend({
 
         if(this.last_n) {
 
+            console.log(this.last_n, " LAST N");
+
             this.drawLine();
 
-            this.data.node.input_connections.push(this.last_n);
-            this.last_n.output_connections.push(this.data.node);
+            this.data.node.output_connections.push(this.last_n);
+            this.last_n.input_connections.push(this.data.node);
+
+            console.log(this.last_n, " LENGHT OF IMNPUT CONECT")
+
+            CM.sm.updateInputConnection(this.last_n);
 
             //this.last_n.last_n = this;
         } else {
@@ -336,12 +342,25 @@ module.exports = Backbone.View.extend({
 
         this.drawLine();
 
-        for(var a = 0 ; a < this.data.node.output_connections.length ; a++) {
+        console.log(this.data.node.input_connections.length, "UPDATE");
 
-            var c = this.data.node.output_connections[a];
+        for(var a = 0 ; a < this.data.node.input_connections.length ; a++) {
+
+            var c = this.data.node.input_connections[a];
             for(var b in c.outputs) c.outputs[b].drawLine();
 
         }
+
+        //if(this.last_n) {
+
+           /* for (var a = 0; a < this.last_n.input_connections.length; a++) {
+
+                var c = this.data.node.input_connections[a];
+                for (var b in c.inputs) c.inputs[b].drawLine();
+
+            }*/
+
+        //}
 
     },
 
@@ -350,7 +369,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":15,"jquery":17}],4:[function(require,module,exports){
+},{"backbone":19,"jquery":21}],4:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -464,7 +483,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./Designer":5,"./StructureManager":8,"backbone":15,"jquery":17}],5:[function(require,module,exports){
+},{"./Designer":5,"./StructureManager":8,"backbone":19,"jquery":21}],5:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -558,7 +577,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./NodeBase":6,"./menu/NodeMenu":11,"backbone":15,"jquery":17}],6:[function(require,module,exports){
+},{"./NodeBase":6,"./menu/NodeMenu":11,"backbone":19,"jquery":21}],6:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -572,19 +591,14 @@ module.exports = Backbone.View.extend({
 
         this.data = obj;
 
-        console.log(this.data.data, " TYPE");
+        this.id = Math.round(Math.random() * 10000);
+
+        this.width = 200;
+
+        this.output_connections = [];
+        this.input_connections = [];
 
         this.group = s.group();
-
-      /* $(this.group.node).attr({
-         "contentEditable":"true"
-         });*/
-
-
-        /*$t.set(this.group.node, {
-            x: (this.data.num * 100),
-            y: Math.random() * 200
-        });*/
 
         var fill;
         var accent;
@@ -608,7 +622,7 @@ module.exports = Backbone.View.extend({
         }
 
 
-        this.rect = s.rect(0, 0, 150, 33);
+        this.rect = s.rect(0, 0, this.width, 33);
         this.rect.attr({
             fill: fill
         });
@@ -622,6 +636,11 @@ module.exports = Backbone.View.extend({
         });*/
 
         this.options = new Options(this.data.data.entry.options);
+
+        $t.set([this.options.top_rect.node, this.options.rect.node, this.options.mask.node], {
+            width: this.width
+        });
+
 
         this.label_rect = s.rect(0,0,17,17);
         this.label_rect.attr({
@@ -673,7 +692,7 @@ module.exports = Backbone.View.extend({
             fill:"white"
         });
         $t.set(this.options_btn.node, {
-            x: 120,
+            x: this.width - 35,
             y: (33-10)/2,
             pointerEvents:"auto",
             cursor:"pointer"
@@ -795,15 +814,13 @@ module.exports = Backbone.View.extend({
 
             i = this.outputs[a];
             $t.set(i.group.node, {
-                x: 150,
+                x: this.width,
                 y:33/2
             });
             this.group.add(i.group);
 
         }
 
-        this.output_connections = [];
-        this.input_connections = [];
 
             //
 /*
@@ -1058,12 +1075,13 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./Connector":3,"./Options":7,"backbone":15,"jquery":17}],7:[function(require,module,exports){
+},{"./Connector":3,"./Options":7,"backbone":19,"jquery":21}],7:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
 var Backbone = require('backbone');
 var Connector = require("./Connector");
+var Option = require("./options/Option");
 
 module.exports = Backbone.View.extend({
 
@@ -1102,19 +1120,21 @@ module.exports = Backbone.View.extend({
 
         this.holder.add(this.rect);
 
-        for(var a = 0 ; a < this.data.length ; a++) {
-
-            var t = s.text(0,0, this.data[a].label);
-            $t.set(t.node, {
-                fontSize : 12,
-                x: 5,
-                y: (20 * a) + 20
-            });
-            this.holder.add(t);
-
-        }
 
         this.group.add(this.holder);
+
+        for(var a = 0 ; a < this.data.length ; a++) {
+
+            var o = new Option(this.data[a]);
+            //var t = s.text(0,0, this.data[a].label);
+            $t.set(o.group.node, {
+                x: 0,
+                y: (20 * a) + 20
+            });
+            this.holder.add(o.group);
+            //o.init();
+        }
+
 
         this.top_rect = s.rect(0,0,150, 5);
         this.top_rect.attr({
@@ -1127,7 +1147,7 @@ module.exports = Backbone.View.extend({
         this.group.add(this.top_rect);
 
         $t.set(this.rect.node, {
-            height: this.data.length * 20
+            height: this.data.length * 30
         });
 
         $t.set(this.mask.node, {
@@ -1208,17 +1228,23 @@ module.exports = Backbone.View.extend({
 
         console.log("OPEN");
 
-        $t.to(this.top_rect.node, .4, {
-            y: -$(this.rect.node).height() - 6
+        var t = .4;
+        var e = Quint.easeInOut;
+
+        $t.to(this.top_rect.node, t, {
+            y: -$(this.rect.node).height() - 7,
+            ease: e
         });
 
-        $t.to(this.holder.node, .4, {
-            y: -$(this.rect.node).height()
+        $t.to(this.holder.node, t, {
+            y: -$(this.rect.node).height() - 1,
+            ease: e
         });
 
-        $t.to(this.mask.node, .4, {
-            y: -this.data.length * 20,
-            height: this.data.length * 40
+        $t.to(this.mask.node, t, {
+            y: -1,
+            height: this.data.length * 30,
+            ease: e
         });
 
         this.isOpen = true;
@@ -1227,17 +1253,23 @@ module.exports = Backbone.View.extend({
 
     close : function() {
 
-        $t.to(this.top_rect.node, .4, {
-            y: -6
+        var t = .4;
+        var e = Quint.easeOut;
+
+        $t.to(this.top_rect.node, t, {
+            y: -6,
+            ease: e
         });
 
-        $t.to(this.holder.node, .4, {
-            y: 0
-        });
-
-        $t.to(this.mask.node, .4, {
+        $t.to(this.holder.node, t, {
             y: 0,
-            height: 0
+            ease: e
+        });
+
+        $t.to(this.mask.node, t, {
+            y: -1,
+            height: 0,
+            ease: e
         });
 
         this.isOpen = false;
@@ -1249,7 +1281,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./Connector":3,"backbone":15,"jquery":17}],8:[function(require,module,exports){
+},{"./Connector":3,"./options/Option":15,"backbone":19,"jquery":21}],8:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -1280,29 +1312,96 @@ module.exports = Backbone.View.extend({
 
     add : function(n) {
 
-        this.structures.push(n);
-        this.update();
+        var o = {};
+        o.node = n;
+        o.group = this.create();
+        this.structures.push(o);
     },
 
-    update : function() {
+    create : function() {
 
-        for(var a = 0 ; a < this.structures.length ; a++) {
+        var g = s.group();
 
-            var c = s.circle(10,a*20,10).attr({
-                fill:"#000"
-            })
-            this.group.add(c);
 
+        var c = s.circle(0,0,10).attr({
+            fill:"#000"
+        });
+
+        g.add(c);
+
+        $t.set(g.node, {
+            y: (this.structures.length * 20) + 30
+        });
+
+        return g;
+
+    },
+
+/*    updateInputConnections : function() {
+
+     console.log(this.structures.length, " STRUCKS");
+
+     for(var a = 0 ; a < this.structures.length ; a++) {
+
+     console.log(this.structures[a].node.input_connections.length, " LENGHT");
+
+     for (var b = 0; b < this.structures[a].node.input_connections.length; b++) {
+
+     console.log("ANIMTION");
+
+     var c = s.circle(0, 0, 10).attr({
+     fill: "#FFF"
+     });
+
+     $t.set(c.node, {
+     x: 20 * b
+     });
+
+     console.log(this.structures[a].group, " GROU");
+
+     this.structures[a].group.add(c);
+     }
+     }
+
+     },*/
+
+    updateInputConnection : function(node) {
+
+        function isNode(element) {
+
+            return element.node.id == node.id;
         }
 
+        var str = this.structures.find(isNode); // 130
+        console.log(str, " SR");
+
+        //for(var a = 0 ; a < str.node.input_connections.length ; a++) {
+
+            console.log("FOR FUCKS SAKE");
+
+            var c = s.circle(0, 0, 10).attr({
+                fill: "#FFF"
+            });
+
+            $t.set(c.node, {
+                x: 20 * str.group.children().length
+            });
+
+            str.group.add(c);
+
+
+       // }
+
     },
+
+
 
     render: function() {
 
     }
 
 });
-},{"backbone":15,"jquery":17}],9:[function(require,module,exports){
+},{"backbone":19,"jquery":21}],9:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -1341,7 +1440,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./MenuListItem":10,"backbone":15,"jquery":17}],10:[function(require,module,exports){
+},{"./MenuListItem":10,"backbone":19,"jquery":21}],10:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -1383,7 +1482,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":15,"jquery":17}],11:[function(require,module,exports){
+},{"backbone":19,"jquery":21}],11:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -1565,7 +1664,166 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./MenuList":9,"backbone":15,"jquery":17}],12:[function(require,module,exports){
+},{"./MenuList":9,"backbone":19,"jquery":21}],12:[function(require,module,exports){
+"use strict";
+
+var $ = require('jquery');
+var Backbone = require('backbone');
+
+module.exports = Backbone.View.extend({
+
+    initialize: function(obj) {
+
+        this.data = obj;
+        this.isOpen = false;
+
+        this.group = s.group();
+
+
+    },
+
+    render: function() {
+
+    }
+
+});
+},{"backbone":19,"jquery":21}],13:[function(require,module,exports){
+arguments[4][12][0].apply(exports,arguments)
+},{"backbone":19,"dup":12,"jquery":21}],14:[function(require,module,exports){
+"use strict";
+
+var $ = require('jquery');
+var Backbone = require('backbone');
+
+module.exports = Backbone.View.extend({
+
+    initialize: function(obj) {
+
+        this.data = obj;
+        this.isOpen = false;
+
+        this.group = s.group();
+        this.group.attr({
+            width: 200
+        });
+
+        this.rect = s.rect(0,0,30,22);
+        this.rect.attr({
+            fill: "#fff"
+        });
+        $t.set(this.rect.node, {
+            /*x:200-30-5,
+            y:-22*/
+        });
+
+        this.text = s.text(15,15,"0");
+        this.text.attr({
+            "text-anchor":"middle",
+            //"alignment-baseline" : "central"
+        });
+        $t.set(this.text.node, {
+            fontSize: 11,
+            color:"#727275"
+        });
+
+        this.group.add(this.rect, this.text);
+
+
+    },
+
+    render: function() {
+
+    }
+
+});
+},{"backbone":19,"jquery":21}],15:[function(require,module,exports){
+"use strict";
+
+var $ = require('jquery');
+var Backbone = require('backbone');
+var randomColor = require('randomcolor');
+
+var NumberOption = require("./NumberOption");
+var BooleanOption = require("./BooleanOption");
+var DropdownOption = require("./DropdownOption");
+
+
+module.exports = Backbone.View.extend({
+
+    initialize: function(obj) {
+
+        this.data = obj;
+        this.isOpen = false;
+
+        this.group = s.group();
+
+
+        var fill = "#C9C9CA";
+        var accent = "#C9C9CA";
+
+        this.rect = s.rect(0, -22, 200, 22);
+        this.rect.attr({
+            fill: fill//randomColor()
+        });
+
+        this.group.add(this.rect);
+
+        this.label  = s.text(5,-6, this.data.label);
+        $t.set(this.label.node, {
+            fontSize : 11,
+            color:"#727275"
+        });
+        this.group.add(this.label);
+
+        console.log(this.data, " OPTION data type");
+
+        this.init();
+
+    },
+
+    init : function() {
+
+        switch(this.data.type) {
+
+            case "Number":
+                this.ot = new NumberOption();
+                break;
+
+            case "Boolean":
+                this.ot = new BooleanOption();
+                break;
+
+            case "Dropdown":
+                this.ot = new DropdownOption();
+                break;
+
+        }
+
+        this.group.add(this.ot.group);
+
+        $t.set(this.ot.group.node, {
+            x:200-30-5,
+            y:-22
+        });
+
+    },
+
+    open : function() {
+
+
+    },
+
+    close : function() {
+
+
+    },
+
+    render: function() {
+
+    }
+
+});
+},{"./BooleanOption":12,"./DropdownOption":13,"./NumberOption":14,"backbone":19,"jquery":21,"randomcolor":22}],16:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -1598,7 +1856,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":15,"jquery":17}],13:[function(require,module,exports){
+},{"backbone":19,"jquery":21}],17:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -1631,7 +1889,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":15,"jquery":17}],14:[function(require,module,exports){
+},{"backbone":19,"jquery":21}],18:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -1701,7 +1959,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":15,"jquery":17}],15:[function(require,module,exports){
+},{"backbone":19,"jquery":21}],19:[function(require,module,exports){
 (function (global){
 //     Backbone.js 1.3.3
 
@@ -3625,7 +3883,7 @@ module.exports = Backbone.View.extend({
 });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"jquery":17,"underscore":16}],16:[function(require,module,exports){
+},{"jquery":21,"underscore":20}],20:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -5175,7 +5433,7 @@ module.exports = Backbone.View.extend({
   }
 }.call(this));
 
-},{}],17:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.1.1
  * https://jquery.com/
@@ -15396,5 +15654,460 @@ if ( !noGlobal ) {
 
 return jQuery;
 } );
+
+},{}],22:[function(require,module,exports){
+// randomColor by David Merfield under the CC0 license
+// https://github.com/davidmerfield/randomColor/
+
+;(function(root, factory) {
+
+  // Support CommonJS
+  if (typeof exports === 'object') {
+    var randomColor = factory();
+
+    // Support NodeJS & Component, which allow module.exports to be a function
+    if (typeof module === 'object' && module && module.exports) {
+      exports = module.exports = randomColor;
+    }
+
+    // Support CommonJS 1.1.1 spec
+    exports.randomColor = randomColor;
+
+  // Support AMD
+  } else if (typeof define === 'function' && define.amd) {
+    define([], factory);
+
+  // Support vanilla script loading
+  } else {
+    root.randomColor = factory();
+  }
+
+}(this, function() {
+
+  // Seed to get repeatable colors
+  var seed = null;
+
+  // Shared color dictionary
+  var colorDictionary = {};
+
+  // Populate the color dictionary
+  loadColorBounds();
+
+  var randomColor = function (options) {
+
+    options = options || {};
+
+    // Check if there is a seed and ensure it's an
+    // integer. Otherwise, reset the seed value.
+    if (options.seed !== undefined && options.seed !== null && options.seed === parseInt(options.seed, 10)) {
+      seed = options.seed;
+
+    // A string was passed as a seed
+    } else if (typeof options.seed === 'string') {
+      seed = stringToInteger(options.seed);
+
+    // Something was passed as a seed but it wasn't an integer or string
+    } else if (options.seed !== undefined && options.seed !== null) {
+      throw new TypeError('The seed value must be an integer or string');
+
+    // No seed, reset the value outside.
+    } else {
+      seed = null;
+    }
+
+    var H,S,B;
+
+    // Check if we need to generate multiple colors
+    if (options.count !== null && options.count !== undefined) {
+
+      var totalColors = options.count,
+          colors = [];
+
+      options.count = null;
+
+      while (totalColors > colors.length) {
+
+        // Since we're generating multiple colors,
+        // incremement the seed. Otherwise we'd just
+        // generate the same color each time...
+        if (seed && options.seed) options.seed += 1;
+
+        colors.push(randomColor(options));
+      }
+
+      options.count = totalColors;
+
+      return colors;
+    }
+
+    // First we pick a hue (H)
+    H = pickHue(options);
+
+    // Then use H to determine saturation (S)
+    S = pickSaturation(H, options);
+
+    // Then use S and H to determine brightness (B).
+    B = pickBrightness(H, S, options);
+
+    // Then we return the HSB color in the desired format
+    return setFormat([H,S,B], options);
+  };
+
+  function pickHue (options) {
+
+    var hueRange = getHueRange(options.hue),
+        hue = randomWithin(hueRange);
+
+    // Instead of storing red as two seperate ranges,
+    // we group them, using negative numbers
+    if (hue < 0) {hue = 360 + hue;}
+
+    return hue;
+
+  }
+
+  function pickSaturation (hue, options) {
+
+    if (options.hue === 'monochrome') {
+      return 0;
+    }
+
+    if (options.luminosity === 'random') {
+      return randomWithin([0,100]);
+    }
+
+    var saturationRange = getSaturationRange(hue);
+
+    var sMin = saturationRange[0],
+        sMax = saturationRange[1];
+
+    switch (options.luminosity) {
+
+      case 'bright':
+        sMin = 55;
+        break;
+
+      case 'dark':
+        sMin = sMax - 10;
+        break;
+
+      case 'light':
+        sMax = 55;
+        break;
+   }
+
+    return randomWithin([sMin, sMax]);
+
+  }
+
+  function pickBrightness (H, S, options) {
+
+    var bMin = getMinimumBrightness(H, S),
+        bMax = 100;
+
+    switch (options.luminosity) {
+
+      case 'dark':
+        bMax = bMin + 20;
+        break;
+
+      case 'light':
+        bMin = (bMax + bMin)/2;
+        break;
+
+      case 'random':
+        bMin = 0;
+        bMax = 100;
+        break;
+    }
+
+    return randomWithin([bMin, bMax]);
+  }
+
+  function setFormat (hsv, options) {
+
+    switch (options.format) {
+
+      case 'hsvArray':
+        return hsv;
+
+      case 'hslArray':
+        return HSVtoHSL(hsv);
+
+      case 'hsl':
+        var hsl = HSVtoHSL(hsv);
+        return 'hsl('+hsl[0]+', '+hsl[1]+'%, '+hsl[2]+'%)';
+
+      case 'hsla':
+        var hslColor = HSVtoHSL(hsv);
+        var alpha = options.alpha || Math.random();
+        return 'hsla('+hslColor[0]+', '+hslColor[1]+'%, '+hslColor[2]+'%, ' + alpha + ')';
+
+      case 'rgbArray':
+        return HSVtoRGB(hsv);
+
+      case 'rgb':
+        var rgb = HSVtoRGB(hsv);
+        return 'rgb(' + rgb.join(', ') + ')';
+
+      case 'rgba':
+        var rgbColor = HSVtoRGB(hsv);
+        var alpha = options.alpha || Math.random();
+        return 'rgba(' + rgbColor.join(', ') + ', ' + alpha + ')';
+
+      default:
+        return HSVtoHex(hsv);
+    }
+
+  }
+
+  function getMinimumBrightness(H, S) {
+
+    var lowerBounds = getColorInfo(H).lowerBounds;
+
+    for (var i = 0; i < lowerBounds.length - 1; i++) {
+
+      var s1 = lowerBounds[i][0],
+          v1 = lowerBounds[i][1];
+
+      var s2 = lowerBounds[i+1][0],
+          v2 = lowerBounds[i+1][1];
+
+      if (S >= s1 && S <= s2) {
+
+         var m = (v2 - v1)/(s2 - s1),
+             b = v1 - m*s1;
+
+         return m*S + b;
+      }
+
+    }
+
+    return 0;
+  }
+
+  function getHueRange (colorInput) {
+
+    if (typeof parseInt(colorInput) === 'number') {
+
+      var number = parseInt(colorInput);
+
+      if (number < 360 && number > 0) {
+        return [number, number];
+      }
+
+    }
+
+    if (typeof colorInput === 'string') {
+
+      if (colorDictionary[colorInput]) {
+        var color = colorDictionary[colorInput];
+        if (color.hueRange) {return color.hueRange;}
+      } else if (colorInput.match(/^#?([0-9A-F]{3}|[0-9A-F]{6})$/i)) {
+        const hue = HexToHSB(colorInput)[0];
+        return [ hue, hue ];
+      }
+    }
+
+    return [0,360];
+
+  }
+
+  function getSaturationRange (hue) {
+    return getColorInfo(hue).saturationRange;
+  }
+
+  function getColorInfo (hue) {
+
+    // Maps red colors to make picking hue easier
+    if (hue >= 334 && hue <= 360) {
+      hue-= 360;
+    }
+
+    for (var colorName in colorDictionary) {
+       var color = colorDictionary[colorName];
+       if (color.hueRange &&
+           hue >= color.hueRange[0] &&
+           hue <= color.hueRange[1]) {
+          return colorDictionary[colorName];
+       }
+    } return 'Color not found';
+  }
+
+  function randomWithin (range) {
+    if (seed === null) {
+      return Math.floor(range[0] + Math.random()*(range[1] + 1 - range[0]));
+    } else {
+      //Seeded random algorithm from http://indiegamr.com/generate-repeatable-random-numbers-in-js/
+      var max = range[1] || 1;
+      var min = range[0] || 0;
+      seed = (seed * 9301 + 49297) % 233280;
+      var rnd = seed / 233280.0;
+      return Math.floor(min + rnd * (max - min));
+    }
+  }
+
+  function HSVtoHex (hsv){
+
+    var rgb = HSVtoRGB(hsv);
+
+    function componentToHex(c) {
+        var hex = c.toString(16);
+        return hex.length == 1 ? '0' + hex : hex;
+    }
+
+    var hex = '#' + componentToHex(rgb[0]) + componentToHex(rgb[1]) + componentToHex(rgb[2]);
+
+    return hex;
+
+  }
+
+  function defineColor (name, hueRange, lowerBounds) {
+
+    var sMin = lowerBounds[0][0],
+        sMax = lowerBounds[lowerBounds.length - 1][0],
+
+        bMin = lowerBounds[lowerBounds.length - 1][1],
+        bMax = lowerBounds[0][1];
+
+    colorDictionary[name] = {
+      hueRange: hueRange,
+      lowerBounds: lowerBounds,
+      saturationRange: [sMin, sMax],
+      brightnessRange: [bMin, bMax]
+    };
+
+  }
+
+  function loadColorBounds () {
+
+    defineColor(
+      'monochrome',
+      null,
+      [[0,0],[100,0]]
+    );
+
+    defineColor(
+      'red',
+      [-26,18],
+      [[20,100],[30,92],[40,89],[50,85],[60,78],[70,70],[80,60],[90,55],[100,50]]
+    );
+
+    defineColor(
+      'orange',
+      [19,46],
+      [[20,100],[30,93],[40,88],[50,86],[60,85],[70,70],[100,70]]
+    );
+
+    defineColor(
+      'yellow',
+      [47,62],
+      [[25,100],[40,94],[50,89],[60,86],[70,84],[80,82],[90,80],[100,75]]
+    );
+
+    defineColor(
+      'green',
+      [63,178],
+      [[30,100],[40,90],[50,85],[60,81],[70,74],[80,64],[90,50],[100,40]]
+    );
+
+    defineColor(
+      'blue',
+      [179, 257],
+      [[20,100],[30,86],[40,80],[50,74],[60,60],[70,52],[80,44],[90,39],[100,35]]
+    );
+
+    defineColor(
+      'purple',
+      [258, 282],
+      [[20,100],[30,87],[40,79],[50,70],[60,65],[70,59],[80,52],[90,45],[100,42]]
+    );
+
+    defineColor(
+      'pink',
+      [283, 334],
+      [[20,100],[30,90],[40,86],[60,84],[80,80],[90,75],[100,73]]
+    );
+
+  }
+
+  function HSVtoRGB (hsv) {
+
+    // this doesn't work for the values of 0 and 360
+    // here's the hacky fix
+    var h = hsv[0];
+    if (h === 0) {h = 1;}
+    if (h === 360) {h = 359;}
+
+    // Rebase the h,s,v values
+    h = h/360;
+    var s = hsv[1]/100,
+        v = hsv[2]/100;
+
+    var h_i = Math.floor(h*6),
+      f = h * 6 - h_i,
+      p = v * (1 - s),
+      q = v * (1 - f*s),
+      t = v * (1 - (1 - f)*s),
+      r = 256,
+      g = 256,
+      b = 256;
+
+    switch(h_i) {
+      case 0: r = v; g = t; b = p;  break;
+      case 1: r = q; g = v; b = p;  break;
+      case 2: r = p; g = v; b = t;  break;
+      case 3: r = p; g = q; b = v;  break;
+      case 4: r = t; g = p; b = v;  break;
+      case 5: r = v; g = p; b = q;  break;
+    }
+
+    var result = [Math.floor(r*255), Math.floor(g*255), Math.floor(b*255)];
+    return result;
+  }
+
+  function HexToHSB (hex) {
+    hex = hex.replace(/^#/, '');
+    hex = hex.length === 3 ? hex.replace(/(.)/g, '$1$1') : hex;
+
+    const red = parseInt(hex.substr(0, 2), 16) / 255,
+          green = parseInt(hex.substr(2, 2), 16) / 255,
+          blue = parseInt(hex.substr(4, 2), 16) / 255;
+
+    const cMax = Math.max(red, green, blue),
+          delta = cMax - Math.min(red, green, blue),
+          saturation = cMax ? (delta / cMax) : 0;
+
+    switch (cMax) {
+      case red: return [ 60 * (((green - blue) / delta) % 6) || 0, saturation, cMax ];
+      case green: return [ 60 * (((blue - red) / delta) + 2) || 0, saturation, cMax ];
+      case blue: return [ 60 * (((red - green) / delta) + 4) || 0, saturation, cMax ];
+    }
+  }
+
+  function HSVtoHSL (hsv) {
+    var h = hsv[0],
+      s = hsv[1]/100,
+      v = hsv[2]/100,
+      k = (2-s)*v;
+
+    return [
+      h,
+      Math.round(s*v / (k<1 ? k : 2-k) * 10000) / 100,
+      k/2 * 100
+    ];
+  }
+
+  function stringToInteger (string) {
+    var total = 0
+    for (var i = 0; i !== string.length; i++) {
+      if (total >= Number.MAX_SAFE_INTEGER) break;
+      total += string.charCodeAt(i)
+    }
+    return total
+  }
+
+  return randomColor;
+}));
 
 },{}]},{},[1]);

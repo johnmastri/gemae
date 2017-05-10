@@ -3,6 +3,7 @@
 var $ = require('jquery');
 var Backbone = require('backbone');
 var Connector = require("./Connector");
+var Option = require("./options/Option");
 
 module.exports = Backbone.View.extend({
 
@@ -41,19 +42,21 @@ module.exports = Backbone.View.extend({
 
         this.holder.add(this.rect);
 
-        for(var a = 0 ; a < this.data.length ; a++) {
-
-            var t = s.text(0,0, this.data[a].label);
-            $t.set(t.node, {
-                fontSize : 12,
-                x: 5,
-                y: (20 * a) + 20
-            });
-            this.holder.add(t);
-
-        }
 
         this.group.add(this.holder);
+
+        for(var a = 0 ; a < this.data.length ; a++) {
+
+            var o = new Option(this.data[a]);
+            //var t = s.text(0,0, this.data[a].label);
+            $t.set(o.group.node, {
+                x: 0,
+                y: (20 * a) + 20
+            });
+            this.holder.add(o.group);
+            //o.init();
+        }
+
 
         this.top_rect = s.rect(0,0,150, 5);
         this.top_rect.attr({
@@ -66,7 +69,7 @@ module.exports = Backbone.View.extend({
         this.group.add(this.top_rect);
 
         $t.set(this.rect.node, {
-            height: this.data.length * 20
+            height: this.data.length * 30
         });
 
         $t.set(this.mask.node, {
@@ -147,17 +150,23 @@ module.exports = Backbone.View.extend({
 
         console.log("OPEN");
 
-        $t.to(this.top_rect.node, .4, {
-            y: -$(this.rect.node).height() - 6
+        var t = .4;
+        var e = Quint.easeInOut;
+
+        $t.to(this.top_rect.node, t, {
+            y: -$(this.rect.node).height() - 7,
+            ease: e
         });
 
-        $t.to(this.holder.node, .4, {
-            y: -$(this.rect.node).height()
+        $t.to(this.holder.node, t, {
+            y: -$(this.rect.node).height() - 1,
+            ease: e
         });
 
-        $t.to(this.mask.node, .4, {
-            y: -this.data.length * 20,
-            height: this.data.length * 40
+        $t.to(this.mask.node, t, {
+            y: -1,
+            height: this.data.length * 30,
+            ease: e
         });
 
         this.isOpen = true;
@@ -166,17 +175,23 @@ module.exports = Backbone.View.extend({
 
     close : function() {
 
-        $t.to(this.top_rect.node, .4, {
-            y: -6
+        var t = .4;
+        var e = Quint.easeOut;
+
+        $t.to(this.top_rect.node, t, {
+            y: -6,
+            ease: e
         });
 
-        $t.to(this.holder.node, .4, {
-            y: 0
-        });
-
-        $t.to(this.mask.node, .4, {
+        $t.to(this.holder.node, t, {
             y: 0,
-            height: 0
+            ease: e
+        });
+
+        $t.to(this.mask.node, t, {
+            y: -1,
+            height: 0,
+            ease: e
         });
 
         this.isOpen = false;

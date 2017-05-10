@@ -11,19 +11,14 @@ module.exports = Backbone.View.extend({
 
         this.data = obj;
 
-        console.log(this.data.data, " TYPE");
+        this.id = Math.round(Math.random() * 10000);
+
+        this.width = 200;
+
+        this.output_connections = [];
+        this.input_connections = [];
 
         this.group = s.group();
-
-      /* $(this.group.node).attr({
-         "contentEditable":"true"
-         });*/
-
-
-        /*$t.set(this.group.node, {
-            x: (this.data.num * 100),
-            y: Math.random() * 200
-        });*/
 
         var fill;
         var accent;
@@ -47,7 +42,7 @@ module.exports = Backbone.View.extend({
         }
 
 
-        this.rect = s.rect(0, 0, 150, 33);
+        this.rect = s.rect(0, 0, this.width, 33);
         this.rect.attr({
             fill: fill
         });
@@ -61,6 +56,11 @@ module.exports = Backbone.View.extend({
         });*/
 
         this.options = new Options(this.data.data.entry.options);
+
+        $t.set([this.options.top_rect.node, this.options.rect.node, this.options.mask.node], {
+            width: this.width
+        });
+
 
         this.label_rect = s.rect(0,0,17,17);
         this.label_rect.attr({
@@ -112,7 +112,7 @@ module.exports = Backbone.View.extend({
             fill:"white"
         });
         $t.set(this.options_btn.node, {
-            x: 120,
+            x: this.width - 35,
             y: (33-10)/2,
             pointerEvents:"auto",
             cursor:"pointer"
@@ -234,15 +234,13 @@ module.exports = Backbone.View.extend({
 
             i = this.outputs[a];
             $t.set(i.group.node, {
-                x: 150,
+                x: this.width,
                 y:33/2
             });
             this.group.add(i.group);
 
         }
 
-        this.output_connections = [];
-        this.input_connections = [];
 
             //
 /*
