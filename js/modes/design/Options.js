@@ -17,8 +17,6 @@ module.exports = Backbone.View.extend({
 
         this.group = s.group();
 
-
-
         var fill = "#DCDCDD";
         var accent = "#C9C9CA";
 
@@ -34,7 +32,9 @@ module.exports = Backbone.View.extend({
         this.holder.attr({//_group
             mask: this.mask
         });
-
+        $t.set(this.holder.node, {
+            pointerEvents:"none"
+        });
         this.rect = s.rect(0, 0, 150, 100);
         this.rect.attr({
             fill: fill
@@ -47,11 +47,14 @@ module.exports = Backbone.View.extend({
 
         for(var a = 0 ; a < this.data.length ; a++) {
 
-            var o = new Option(this.data[a]);
+            var o = new Option({
+                data:this.data[a],
+                parent: this
+            });
             //var t = s.text(0,0, this.data[a].label);
             $t.set(o.group.node, {
                 x: 0,
-                y: (20 * a) + 20
+                y: (22 * a) + 21
             });
             this.holder.add(o.group);
             //o.init();
@@ -69,12 +72,13 @@ module.exports = Backbone.View.extend({
         this.group.add(this.top_rect);
 
         $t.set(this.rect.node, {
-            height: this.data.length * 30
+            height: (this.data.length * 22) + 10
         });
 
         $t.set(this.mask.node, {
             y: 0,//-this.data.length * 20,
-            height: 0//this.data.length * 40
+            height: 0,//this.data.length * 40
+            //overflow:"hidden"
         });
 
 
@@ -165,8 +169,12 @@ module.exports = Backbone.View.extend({
 
         $t.to(this.mask.node, t, {
             y: -1,
-            height: this.data.length * 30,
+            height: $(this.rect.node).height() + 1,
             ease: e
+        });
+
+       $t.set(this.holder.node, {
+            pointerEvents:"auto"
         });
 
         this.isOpen = true;
@@ -193,6 +201,11 @@ module.exports = Backbone.View.extend({
             height: 0,
             ease: e
         });
+
+        $t.set([this.holder.node], {
+            pointerEvents:"none"
+        });
+
 
         this.isOpen = false;
 

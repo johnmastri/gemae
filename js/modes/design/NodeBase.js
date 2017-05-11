@@ -20,6 +20,8 @@ module.exports = Backbone.View.extend({
 
         this.group = s.group();
 
+        this.group.addClass("node");
+
         var fill;
         var accent;
 
@@ -61,6 +63,9 @@ module.exports = Backbone.View.extend({
             width: this.width
         });
 
+        this.options.top_rect.attr({
+            fill: accent
+        });
 
         this.label_rect = s.rect(0,0,17,17);
         this.label_rect.attr({
@@ -182,7 +187,7 @@ module.exports = Backbone.View.extend({
 
         */
 
-        this.group.add(  this.rect, this.options.group, this.label_rect, this.label, this.title, this.options_btn);
+        this.group.add(this.options.group, this.rect, this.label_rect, this.label, this.title, this.options_btn);
 
         // adds node type to structure manager
         if(this.data.type === "structure") {
@@ -409,7 +414,11 @@ module.exports = Backbone.View.extend({
 
        //this.options.open();
 
-       CM.design_mode.group.add(this.group);
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+       CM.designer.workspace.add(this.group);
 
         $t.set(this.tf, {
             autoAlpha:0
@@ -429,7 +438,7 @@ module.exports = Backbone.View.extend({
         });
     },
 
-    handleGroupDrag: function() {
+    handleGroupDrag: function(event) {
 
 /*        if(this.connections.length > 0) {
 
@@ -442,6 +451,7 @@ module.exports = Backbone.View.extend({
             this.connectors[a].drawLine();
 
         }*/
+
 
         for(var a = 0 ; a < this.inputs.length ; a++) {
 

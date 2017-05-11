@@ -13,7 +13,9 @@ module.exports = Backbone.View.extend({
 
     initialize: function(obj) {
 
-        this.data = obj;
+
+        this.data = obj.data;
+        this.parent = obj.parent;
         this.isOpen = false;
 
         this.group = s.group();
@@ -22,21 +24,19 @@ module.exports = Backbone.View.extend({
         var fill = "#C9C9CA";
         var accent = "#C9C9CA";
 
-        this.rect = s.rect(0, -22, 200, 22);
+        this.rect = s.rect(0, -21, 5, 22);
         this.rect.attr({
             fill: fill//randomColor()
         });
 
         this.group.add(this.rect);
 
-        this.label  = s.text(5,-6, this.data.label);
+        this.label  = s.text(10,-6, this.data.label);
         $t.set(this.label.node, {
             fontSize : 11,
             color:"#727275"
         });
         this.group.add(this.label);
-
-        console.log(this.data, " OPTION data type");
 
         this.init();
 
@@ -47,24 +47,27 @@ module.exports = Backbone.View.extend({
         switch(this.data.type) {
 
             case "Number":
-                this.ot = new NumberOption();
+                this.ot = new NumberOption(this.data);
                 break;
 
             case "Boolean":
-                this.ot = new BooleanOption();
+                this.ot = new BooleanOption(this.data);
                 break;
 
             case "Dropdown":
-                this.ot = new DropdownOption();
+                this.ot = new DropdownOption(this.data);
                 break;
 
         }
 
+        this.ot.parent = this.parent;
+        this.ot.option = this;
+
         this.group.add(this.ot.group);
 
         $t.set(this.ot.group.node, {
-            x:200-30-5,
-            y:-22
+            x:200 - $(this.ot.group.node).width() - 5,
+            y:-20
         });
 
     },

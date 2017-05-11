@@ -11,12 +11,12 @@ module.exports = Backbone.View.extend({
 
         this.nodes = [];
 
-        this.types = ["structure", "field"];
+        //this.types = ["structure", "field"];
 
         this.node_count = 0;
 
-        this.field = s.group();
-        this.field.appendTo(ref.group);
+        this.workspace = s.group();
+        this.workspace.appendTo(ref.designer_holder);
 
         for(var a = 0 ; a < 10 ; a++) {
 
@@ -35,19 +35,29 @@ module.exports = Backbone.View.extend({
                 });
 
                 this.nodes.push(node_base);
-                this.field.add(node_base.group);
+                this.workspace.add(node_base.group);
 
                 this.node_count++;*/
 
             }
 
-        $t.set(this.field.node, {
+        this.rect = s.rect(0,0,$w.width(),$w.height()).attr({fill:"rgba(0,0,0,0)"});
+        this.workspace.add(this.rect);
+
+/*        $t.set(this.workspace.node, {
+            //x: 200
+            width:"100%",
+            height:"100%",
+            backgroundColor:"red"
+        });*/
+
+        $t.set(this.workspace.node, {
             //x: 200
         });
 
         this.node_menu = new NodeMenu();
        //console.log(this.node_menu.group, " NODE MENU GROUP");
-        this.field.add(this.node_menu.group);
+        ref.group.add(this.node_menu.group);
 
         $w.on("resize", $.proxy(this.render, this));
 
@@ -72,7 +82,7 @@ module.exports = Backbone.View.extend({
         });*/
 
         this.nodes.push(node_base);
-        this.field.add(node_base.group);
+        this.workspace.add(node_base.group);
 
         this.node_count++;
 

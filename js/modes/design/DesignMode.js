@@ -19,14 +19,36 @@ module.exports = Backbone.View.extend({
 
         this.$el.html("THIS IS THE DESIGN SECTION");*/
 
-        this.group = s.group();
+        this.bg = s.rect(0,0,$w.width(),$w.height()).attr("fill", "#737373");
+
+        this.group = s.group();//.attr("fill", "#737373");;
         this.group.attr({name:"design_mode"});
 
-        this.bg = s.rect(0,0,$w.width(),$w.height()).attr("fill", "#999999");
-        this.group.add(this.bg);
+        //$(this.bg.node).on("click", $.proxy(this.handleBg, this));
+
+       this.group.add(this.bg);
+
+        this.designer_holder = s.group();
+        this.group.add(this.designer_holder);
+
 
         CM.sm = new StructureManager(this);
         CM.designer = new Designer(this);
+
+        Draggable.create(this.designer_holder.node, {
+            type:"x,y",
+            edgeResistance:0.65,
+            trigger: CM.designer.rect.node,
+            onDrag : this.handleGroupDrag,
+            onDragScope: this,
+/*             onDragStart: this.handleDragStart,
+             onDragStartScope : this,
+             onDragEnd: this.handleDragComplete,
+             onDragEndScope : this*/
+            //bounds:s.node,
+            //throwProps:true
+        });
+
 
         this.holder = MASTRI.add("div", {
             position:"relative",
@@ -101,6 +123,18 @@ module.exports = Backbone.View.extend({
             {
             }
 
+        })
+
+    },
+
+    handleGroupDrag : function() {
+
+        var r = CM.designer.rect;
+        var x = this.designer_holder.node._gsTransform.x;
+        var y = this.designer_holder.node._gsTransform.y;
+        $t.set(r.node, {
+            x: -x,
+            y: -y
         })
 
     },

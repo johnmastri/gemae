@@ -189,8 +189,6 @@ module.exports = Backbone.View.extend({
 
         this.drawLine();
 
-        console.log(this.data.node.input_connections.length, "UPDATE");
-
         for(var a = 0 ; a < this.data.node.input_connections.length ; a++) {
 
             var c = this.data.node.input_connections[a];

@@ -32,18 +32,15 @@ module.exports = Backbone.View.extend({
                            type: "Boolean",
                            defaultValue: "false"
                        }
-
-                       /* may move format to number*/
-
-                       /*
                        ,
+                       //may move to number - but leaving for testing
                        {
                            label:"Format",
                            type: "Dropdown",
                            values: ["None","Phone","Currency","Other"],
                            defaultValue: 0
                        }
-                       */
+
                    ]},
                   {
                       name: "Number",
@@ -82,7 +79,7 @@ module.exports = Backbone.View.extend({
                           },
                           {
                               label:"Value",
-                              type:"Text",
+                              type:"Number",
                               defaultValue:"0xFF0000"
                           }
                       ]

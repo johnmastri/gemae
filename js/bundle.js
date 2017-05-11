@@ -342,8 +342,6 @@ module.exports = Backbone.View.extend({
 
         this.drawLine();
 
-        console.log(this.data.node.input_connections.length, "UPDATE");
-
         for(var a = 0 ; a < this.data.node.input_connections.length ; a++) {
 
             var c = this.data.node.input_connections[a];
@@ -391,14 +389,36 @@ module.exports = Backbone.View.extend({
 
         this.$el.html("THIS IS THE DESIGN SECTION");*/
 
-        this.group = s.group();
+        this.bg = s.rect(0,0,$w.width(),$w.height()).attr("fill", "#737373");
+
+        this.group = s.group();//.attr("fill", "#737373");;
         this.group.attr({name:"design_mode"});
 
-        this.bg = s.rect(0,0,$w.width(),$w.height()).attr("fill", "#999999");
-        this.group.add(this.bg);
+        //$(this.bg.node).on("click", $.proxy(this.handleBg, this));
+
+       this.group.add(this.bg);
+
+        this.designer_holder = s.group();
+        this.group.add(this.designer_holder);
+
 
         CM.sm = new StructureManager(this);
         CM.designer = new Designer(this);
+
+        Draggable.create(this.designer_holder.node, {
+            type:"x,y",
+            edgeResistance:0.65,
+            trigger: CM.designer.rect.node,
+            onDrag : this.handleGroupDrag,
+            onDragScope: this,
+/*             onDragStart: this.handleDragStart,
+             onDragStartScope : this,
+             onDragEnd: this.handleDragComplete,
+             onDragEndScope : this*/
+            //bounds:s.node,
+            //throwProps:true
+        });
+
 
         this.holder = MASTRI.add("div", {
             position:"relative",
@@ -477,6 +497,18 @@ module.exports = Backbone.View.extend({
 
     },
 
+    handleGroupDrag : function() {
+
+        var r = CM.designer.rect;
+        var x = this.designer_holder.node._gsTransform.x;
+        var y = this.designer_holder.node._gsTransform.y;
+        $t.set(r.node, {
+            x: -x,
+            y: -y
+        })
+
+    },
+
     render: function() {
 
 
@@ -497,12 +529,12 @@ module.exports = Backbone.View.extend({
 
         this.nodes = [];
 
-        this.types = ["structure", "field"];
+        //this.types = ["structure", "field"];
 
         this.node_count = 0;
 
-        this.field = s.group();
-        this.field.appendTo(ref.group);
+        this.workspace = s.group();
+        this.workspace.appendTo(ref.designer_holder);
 
         for(var a = 0 ; a < 10 ; a++) {
 
@@ -521,19 +553,29 @@ module.exports = Backbone.View.extend({
                 });
 
                 this.nodes.push(node_base);
-                this.field.add(node_base.group);
+                this.workspace.add(node_base.group);
 
                 this.node_count++;*/
 
             }
 
-        $t.set(this.field.node, {
+        this.rect = s.rect(0,0,$w.width(),$w.height()).attr({fill:"rgba(0,0,0,0)"});
+        this.workspace.add(this.rect);
+
+/*        $t.set(this.workspace.node, {
+            //x: 200
+            width:"100%",
+            height:"100%",
+            backgroundColor:"red"
+        });*/
+
+        $t.set(this.workspace.node, {
             //x: 200
         });
 
         this.node_menu = new NodeMenu();
        //console.log(this.node_menu.group, " NODE MENU GROUP");
-        this.field.add(this.node_menu.group);
+        ref.group.add(this.node_menu.group);
 
         $w.on("resize", $.proxy(this.render, this));
 
@@ -558,7 +600,7 @@ module.exports = Backbone.View.extend({
         });*/
 
         this.nodes.push(node_base);
-        this.field.add(node_base.group);
+        this.workspace.add(node_base.group);
 
         this.node_count++;
 
@@ -599,6 +641,8 @@ module.exports = Backbone.View.extend({
         this.input_connections = [];
 
         this.group = s.group();
+
+        this.group.addClass("node");
 
         var fill;
         var accent;
@@ -641,6 +685,9 @@ module.exports = Backbone.View.extend({
             width: this.width
         });
 
+        this.options.top_rect.attr({
+            fill: accent
+        });
 
         this.label_rect = s.rect(0,0,17,17);
         this.label_rect.attr({
@@ -762,7 +809,7 @@ module.exports = Backbone.View.extend({
 
         */
 
-        this.group.add(  this.rect, this.options.group, this.label_rect, this.label, this.title, this.options_btn);
+        this.group.add(this.options.group, this.rect, this.label_rect, this.label, this.title, this.options_btn);
 
         // adds node type to structure manager
         if(this.data.type === "structure") {
@@ -989,7 +1036,11 @@ module.exports = Backbone.View.extend({
 
        //this.options.open();
 
-       CM.design_mode.group.add(this.group);
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+       CM.designer.workspace.add(this.group);
 
         $t.set(this.tf, {
             autoAlpha:0
@@ -1009,7 +1060,7 @@ module.exports = Backbone.View.extend({
         });
     },
 
-    handleGroupDrag: function() {
+    handleGroupDrag: function(event) {
 
 /*        if(this.connections.length > 0) {
 
@@ -1022,6 +1073,7 @@ module.exports = Backbone.View.extend({
             this.connectors[a].drawLine();
 
         }*/
+
 
         for(var a = 0 ; a < this.inputs.length ; a++) {
 
@@ -1095,8 +1147,6 @@ module.exports = Backbone.View.extend({
 
         this.group = s.group();
 
-
-
         var fill = "#DCDCDD";
         var accent = "#C9C9CA";
 
@@ -1112,7 +1162,9 @@ module.exports = Backbone.View.extend({
         this.holder.attr({//_group
             mask: this.mask
         });
-
+        $t.set(this.holder.node, {
+            pointerEvents:"none"
+        });
         this.rect = s.rect(0, 0, 150, 100);
         this.rect.attr({
             fill: fill
@@ -1125,11 +1177,14 @@ module.exports = Backbone.View.extend({
 
         for(var a = 0 ; a < this.data.length ; a++) {
 
-            var o = new Option(this.data[a]);
+            var o = new Option({
+                data:this.data[a],
+                parent: this
+            });
             //var t = s.text(0,0, this.data[a].label);
             $t.set(o.group.node, {
                 x: 0,
-                y: (20 * a) + 20
+                y: (22 * a) + 21
             });
             this.holder.add(o.group);
             //o.init();
@@ -1147,12 +1202,13 @@ module.exports = Backbone.View.extend({
         this.group.add(this.top_rect);
 
         $t.set(this.rect.node, {
-            height: this.data.length * 30
+            height: (this.data.length * 22) + 10
         });
 
         $t.set(this.mask.node, {
             y: 0,//-this.data.length * 20,
-            height: 0//this.data.length * 40
+            height: 0,//this.data.length * 40
+            //overflow:"hidden"
         });
 
 
@@ -1243,8 +1299,12 @@ module.exports = Backbone.View.extend({
 
         $t.to(this.mask.node, t, {
             y: -1,
-            height: this.data.length * 30,
+            height: $(this.rect.node).height() + 1,
             ease: e
+        });
+
+       $t.set(this.holder.node, {
+            pointerEvents:"auto"
         });
 
         this.isOpen = true;
@@ -1271,6 +1331,11 @@ module.exports = Backbone.View.extend({
             height: 0,
             ease: e
         });
+
+        $t.set([this.holder.node], {
+            pointerEvents:"none"
+        });
+
 
         this.isOpen = false;
 
@@ -1517,18 +1582,15 @@ module.exports = Backbone.View.extend({
                            type: "Boolean",
                            defaultValue: "false"
                        }
-
-                       /* may move format to number*/
-
-                       /*
                        ,
+                       //may move to number - but leaving for testing
                        {
                            label:"Format",
                            type: "Dropdown",
                            values: ["None","Phone","Currency","Other"],
                            defaultValue: 0
                        }
-                       */
+
                    ]},
                   {
                       name: "Number",
@@ -1567,7 +1629,7 @@ module.exports = Backbone.View.extend({
                           },
                           {
                               label:"Value",
-                              type:"Text",
+                              type:"Number",
                               defaultValue:"0xFF0000"
                           }
                       ]
@@ -1675,9 +1737,47 @@ module.exports = Backbone.View.extend({
     initialize: function(obj) {
 
         this.data = obj;
-        this.isOpen = false;
+        this.isTrue = true;
+        this.parent = null;
 
         this.group = s.group();
+        this.group.attr({
+            width: 40
+        });
+
+        this.rect = s.rect(0,0,40,5);
+        this.rect.attr({
+            fill:"#BDBDBF"
+        });
+        $t.set(this.rect.node, {
+            cursor:"pointer"
+        })
+
+        this.toggle = s.rect(0,0,20,5).attr({
+            fill:"#949497"
+        });
+        $t.set(this.toggle.node, {
+           pointerEvents:"none"
+        });
+
+        $t.set([this.rect.node, this.toggle.node], {
+           y:  (21-5)/2
+        });
+
+        this.group.add(this.rect, this.toggle);
+
+        $(this.rect.node).on("click", $.proxy(this.handleToggle, this));
+
+
+    },
+
+    handleToggle : function() {
+
+        $t.to(this.toggle.node, .25, {
+           x: (this.isTrue) ? 20 : 0
+        });
+
+        this.isTrue = !this.isTrue;
 
 
     },
@@ -1688,8 +1788,187 @@ module.exports = Backbone.View.extend({
 
 });
 },{"backbone":19,"jquery":21}],13:[function(require,module,exports){
-arguments[4][12][0].apply(exports,arguments)
-},{"backbone":19,"dup":12,"jquery":21}],14:[function(require,module,exports){
+"use strict";
+
+var $ = require('jquery');
+var Backbone = require('backbone');
+var randomColor = require('randomcolor');
+
+module.exports = Backbone.View.extend({
+
+    initialize: function(obj) {
+
+        this.data = obj;
+        this.isOpen = false;
+        this.parent = null;
+        this.option = null;
+
+        this.group = s.group();
+
+        this.rect = s.rect(0,0,85,20);
+        this.rect.attr({
+            fill: "#EEEEEE"
+        });
+        $t.set(this.rect.node, {
+            /*x:200-30-5,
+             y:-22*/
+        });
+
+        this.group.add(this.rect);
+
+        this.values = s.group();
+        this.values_s = [];
+
+        for(var a = 0 ; a < this.data.values.length ; a++) {
+
+            var g = s.group();
+            var r = s.rect(0,0,85,20).attr({
+                fill: "#EEEEEE",//randomColor(),
+                "data-num" : a
+            });
+            $(r.node).on("click", $.proxy(this.handleDDSelect, this));
+            $t.set(r.node, {
+                pointerEvents:"none",
+                cursor:"pointer"
+            });
+            var t = s.text(5,7,this.data.values[a]).attr({
+                "alignment-baseline" : "hanging"
+            });
+            $t.set( t.node , {
+               color:"#727275",
+               fontSize: 11
+            });
+            g.add(r, t);
+            $t.set(g.node, {
+                y: a * 20
+            });
+            this.values.add(g);
+            this.values_s.push(g);
+
+        }
+
+        this.group.add(this.values);
+
+        this.mask = s.rect(0,0,85,20).attr({fill:"#fff"});
+
+        this.values.attr({
+            mask : this.mask
+        });
+
+        this.hit = s.rect(0,0,85,20).attr({fill:'rgba(0,0,0,0)'});
+        $t.set(this.hit.node, {
+            cursor:"pointer"
+        });
+        this.group.add(this.hit);
+
+        $(this.hit.node).on("click", $.proxy(this.handleDDOpen, this));
+
+
+
+
+    },
+
+    handleDDSelect : function(event) {
+
+        var c = $(event.currentTarget);
+        var n = c.data().num;
+        var v = this.values_s[n];
+
+        this.values.add(v);
+        console.log(c);
+        //this.values.add()
+        $t.to(v.node, 0, {
+            y: 0
+        });
+
+        this.handleDDClose();
+
+
+
+    },
+
+    handleDDOpen : function() {
+
+        var n = $(this.group.node).closest(".node");
+        var pu = $(this.group.node).parentsUntil(".node");
+
+        var x = 0;
+        var y = 0;
+
+        for(var a = 0 ; a < pu.length ; a++) {
+
+            var p = pu[a];
+            if(p._gsTransform) {
+                x += p._gsTransform.x;
+                y += p._gsTransform.y;
+            }
+        }
+
+        y += this.group.node._gsTransform.y;
+
+        n[0].append(this.group.node);
+
+        $t.set(this.group.node, {
+            y:y
+        });
+
+        for(var a = 0 ; a < this.values_s.length ; a++) {
+
+            var v = this.values_s[a];
+            $t.set(v.node, {
+                y: a * 20
+            })
+            var r = v.children()[0];
+
+            $t.set(r.node, {
+                pointerEvents:"auto"
+            })
+
+        }
+
+        $t.to(this.mask.node, .25, {
+            height: this.data.values.length * 20
+        });
+        $t.set(this.hit.node, {
+            pointerEvents: "none"
+        });
+
+    },
+
+    handleDDClose : function() {
+
+        this.option.group.add(this.group);
+
+        $t.set(this.group.node, {
+            y:-20
+        });
+
+        $t.to(this.mask.node, 0, {
+            height: 20
+        });
+
+        $t.set(this.hit.node, {
+            pointerEvents: "inherit"
+        });
+
+        for(var a = 0 ; a < this.values_s.length ; a++) {
+
+            var v = this.values_s[a];
+            var r = v.children()[0];
+            $t.set(r.node, {
+                pointerEvents:"none"
+            })
+
+        }
+
+    },
+
+    render: function() {
+
+    }
+
+});
+},{"backbone":19,"jquery":21,"randomcolor":22}],14:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -1701,22 +1980,23 @@ module.exports = Backbone.View.extend({
 
         this.data = obj;
         this.isOpen = false;
+        this.parent = null;
 
         this.group = s.group();
         this.group.attr({
             width: 200
         });
 
-        this.rect = s.rect(0,0,30,22);
+        this.rect = s.rect(0,0,60,20);
         this.rect.attr({
-            fill: "#fff"
+            fill: "#EEEEEE"
         });
         $t.set(this.rect.node, {
             /*x:200-30-5,
             y:-22*/
         });
 
-        this.text = s.text(15,15,"0");
+        this.text = s.text($(this.rect.node).width()/2,15,"0");
         this.text.attr({
             "text-anchor":"middle",
             //"alignment-baseline" : "central"
@@ -1752,7 +2032,9 @@ module.exports = Backbone.View.extend({
 
     initialize: function(obj) {
 
-        this.data = obj;
+
+        this.data = obj.data;
+        this.parent = obj.parent;
         this.isOpen = false;
 
         this.group = s.group();
@@ -1761,21 +2043,19 @@ module.exports = Backbone.View.extend({
         var fill = "#C9C9CA";
         var accent = "#C9C9CA";
 
-        this.rect = s.rect(0, -22, 200, 22);
+        this.rect = s.rect(0, -21, 5, 22);
         this.rect.attr({
             fill: fill//randomColor()
         });
 
         this.group.add(this.rect);
 
-        this.label  = s.text(5,-6, this.data.label);
+        this.label  = s.text(10,-6, this.data.label);
         $t.set(this.label.node, {
             fontSize : 11,
             color:"#727275"
         });
         this.group.add(this.label);
-
-        console.log(this.data, " OPTION data type");
 
         this.init();
 
@@ -1786,24 +2066,27 @@ module.exports = Backbone.View.extend({
         switch(this.data.type) {
 
             case "Number":
-                this.ot = new NumberOption();
+                this.ot = new NumberOption(this.data);
                 break;
 
             case "Boolean":
-                this.ot = new BooleanOption();
+                this.ot = new BooleanOption(this.data);
                 break;
 
             case "Dropdown":
-                this.ot = new DropdownOption();
+                this.ot = new DropdownOption(this.data);
                 break;
 
         }
 
+        this.ot.parent = this.parent;
+        this.ot.option = this;
+
         this.group.add(this.ot.group);
 
         $t.set(this.ot.group.node, {
-            x:200-30-5,
-            y:-22
+            x:200 - $(this.ot.group.node).width() - 5,
+            y:-20
         });
 
     },
