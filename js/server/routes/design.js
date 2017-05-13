@@ -97,20 +97,34 @@ router.route('/*')
         console.log(e);
 
         mongoose.model("design").find({})
-                .exec((err, task) => {
+                .exec((err, node) => {
                     if (err) {
                         return res.send(err);
                     }
-                    return res.json(task);
+                    return res.json(node);
                 });
 
         //}
     })
 
-    .post((req, res) => {
+    .put((req, res) => {
+
+        let query = { local_id : req.body.local_id };
+        console.log(query, " QUERTY");
+        mongoose.model("design").findOneAndUpdate(query, req.body, {
+            new: true,
+            upsert: true
+        }, (err, doc) => {
+
+            console.log(err, " ERROR");
+
+           console.log(doc, " DOC");
+           return res.json(doc);
+
+        });
 
         console.log(req.url, " URL");
-        let e = req.url.substr(1, req.url.length);
+        /*let e = req.url.substr(1, req.url.length);
         let o = {
             name: "something new from node",
             type: "textfield",
@@ -125,7 +139,9 @@ router.route('/*')
                 return res.send(err);
             }
             return res.json({message: 'new design saved'});
-        });
+        });*/
+
+
 
         //endpoint
         //pull available endpoints from designs? if active

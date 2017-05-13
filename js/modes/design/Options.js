@@ -12,9 +12,6 @@ module.exports = Backbone.View.extend({
         this.data = obj;
         this.isOpen = false;
 
-
-        console.log(this.data, " TYPE");
-
         this.group = s.group();
 
         var fill = "#DCDCDD";

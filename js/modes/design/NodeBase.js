@@ -4,6 +4,7 @@ var $ = require('jquery');
 var Backbone = require('backbone');
 var Connector = require("./Connector");
 var Options = require("./Options");
+var cryptoRandomString = require('crypto-random-string');
 
 module.exports = Backbone.View.extend({
 
@@ -11,9 +12,10 @@ module.exports = Backbone.View.extend({
 
         this.data = obj;
 
-        this.id = Math.round(Math.random() * 10000);
-
         this.width = 200;
+
+        this.local_id = obj.local_id || cryptoRandomString(10);
+        console.log(this.local_id, " ID!");
 
         this.output_connections = [];
         this.input_connections = [];
@@ -104,7 +106,8 @@ module.exports = Backbone.View.extend({
             border:"0px none transparent",
             color:"white",
             outline:"none",
-            width: 60
+            width: 60,
+            autoAlpha:0
             //letterSpacing: ".08em"
         });
 
@@ -123,6 +126,7 @@ module.exports = Backbone.View.extend({
             cursor:"pointer"
         });
         $(this.options_btn.node).on("click", $.proxy(this.handleOptions, this));
+        $(this.options.top_rect.node).on("dblclick", $.proxy(this.handleOptions, this));
 
         $b.append(this.tf);
 
@@ -429,12 +433,14 @@ module.exports = Backbone.View.extend({
 
         console.log("MOUSE DOWN");
 
+        CM.designer.node_manager.update(this);
+
         /* $t.set(this.title.node, {
          autoAlpha:1
          });*/
 
         $t.set(this.tf, {
-            autoAlpha:1
+           // autoAlpha:1
         });
     },
 

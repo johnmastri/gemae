@@ -8,6 +8,9 @@ const schema = new mongoose.Schema({
   options: {type : Object},
   completed: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
+  local_id: { type: String },
+  position: {type : Object},
+  type : {type: String}
 });
 
 module.exports = mongoose.model('design', schema);

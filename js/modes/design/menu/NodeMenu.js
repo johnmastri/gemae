@@ -83,6 +83,19 @@ module.exports = Backbone.View.extend({
                               defaultValue:"0xFF0000"
                           }
                       ]
+                  },
+
+                  {
+                      name: "Boolean",
+                      label:"BO",
+                      options: [
+                          {
+                              /* probably not necessary */
+                              label:"Default Value",
+                              type:"Dropdown",
+                              values: ["true","false"]
+                          }
+                      ]
                   }
                   //,
                   //{name: "Image"}
@@ -94,7 +107,11 @@ module.exports = Backbone.View.extend({
                     {
                         name : "Structure",
                         label:"ST",
-                        options: []
+                        options: [{
+                            label: "Form Accessible",
+                            type: "Boolean",
+                            defaultValue: "false"
+                        }]
                     },
                     {
                         name : "Group",
@@ -112,14 +129,23 @@ module.exports = Backbone.View.extend({
                         options: []
                     },
                     {
-                        name : "Filter",
-                        label:"FI",
+                        name : "Query",
+                        label:"QU",
+                        options: []
+                    },
+                    {
+                        name : "Form",
+                        label:"FO",
                         options: []
                     }
                 ]
             }
 
         ];
+
+        //TODO: update from database types or have dedicated types class -- making global for now
+
+        CM.node_types = this.menu;
 
         this.menu_lists = [];
 
