@@ -47,12 +47,12 @@ module.exports = Backbone.View.extend({
                 break;
         }
 
-        this.rect = s.rect(0, 0, this.width, 33);
+        this.rect = s.rect(0, 0, this.width, 23);
         this.rect.attr({
             fill: fill
         });
 
-        console.log(this.data, " IS OPEN");
+        console.log(this.data.data.option_values, " IS OPEN");
 
         this.options = new Options(this.data.data.entry.options);
         if(this.data.data.option_values) {
@@ -136,61 +136,6 @@ module.exports = Backbone.View.extend({
             y: this.data.position.css.y + (33-15)/2 - 2
         });
 
-       /*
-       *
-        There is an interesting SVG node called foreignObject, which allows you to place HTML, flash, etc within your SVG code. Try the following:
-
-        <svg width="100%" height="500">
-        <foreignObject x="10" y="10" width="100" height="150">
-        <div xmlns="http://www.w3.org/1999/xhtml">
-        <input></input>
-        </div>
-        </foreignObject>
-        </svg>
-       * */
-
-       //this.fo = $(document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject'));
-
-           /*MASTRI.add("foreignObject", {
-           position:"relative",
-           backgroundColor:"blue"
-       });
-
-*/
-
-           /*
-
-      $t.set(this.fo, {
-          pointerEvents:"auto",
-      });
-
-       this.fo.attr({
-           width:"100",
-           height:"100"
-       });
-
-       this.fo_div = MASTRI.add("div", {
-       });
-       this.fo_div.attr({"xmlns":"http://www.w3.org/1999/xhtml"});
-       this.input = MASTRI.add("input", {
-       });
-
-       this.input.attr({
-           value: "FUCK"
-       });
-
-       this.fo.append(this.fo_div);
-       this.fo_div.append(this.input);
-
-        var tc = '<foreignObject x="10" y="10" width="100" height="150"><div xmlns="http://www.w3.org/1999/xhtml"><input></input></div></foreignObject>';
-        console.log(tc);
-
-        this.group.add(this.rect);//, title);
-
-        $(this.group.node).append(this.fo);
-
-        */
-
         this.group.add(this.options.group, this.rect, this.label_rect, this.label, this.title, this.options_btn);
 
         // adds node type to structure manager
@@ -214,6 +159,14 @@ module.exports = Backbone.View.extend({
             //throwProps:true
         });
 
+       this.createIO();
+
+
+    },
+
+
+    createIO : function() {
+
         //todo: will be defined by node type
         this.inputs = [];
         this.outputs = [];
@@ -234,6 +187,10 @@ module.exports = Backbone.View.extend({
 
         }
 
+        $t.set(this.rect.node, {
+           height: 22 + (11 * this.inputs.length)
+        });
+
         this.outputs.push(new Connector({
             type:"output",
             node: this
@@ -250,60 +207,37 @@ module.exports = Backbone.View.extend({
 
         }
 
+    },
 
-            //
-/*
-            this.hit_circle = s.circle(0,0,10).attr("fill", "#ff0000");
+    updateOutput : function(output, input, connector) {
 
-            $t.set(this.hit_circle.node, {
-                x: 20,
-                y: 2.5,
-                cursor:"pointer"
-            });
-
-            this.hit = Draggable.create(this.hit_circle.node, {
-                type:"x,y",
-                edgeResistance:0.65,
-                //bounds:s.node,
-                //throwProps:true,
-                onDragStart: this.handleDragStart,
-                onDragStartScope: this,
-                onDrag: this.handleDrag,
-                onDragScope: this,
-                onDragEnd : this.handleDragEnd,
-                onDragEndScope : this
-            });
-
-            this.mini_circle = s.circle(0,0,5).attr("data-num", this.data.num);
-
-            $t.set(this.mini_circle.node, {
-                x: 20,
-                y: 2.5,
-                //cursor:"pointer",
-                pointerEvents:"none",
-                //autoAlpha:0
-            });
-
-        this.mini_circle_l = s.circle(0,0,5).attr({
-            "data-num": this.data.num,
-            fill:"#333"
+        var nc = new Connector({
+            type:"input",
+            node: this
         });
 
-        $t.set(this.mini_circle_l.node, {
-            x: -20,
-            y: 2.5,
-            cursor:"pointer",
-            pointerEvents:"none"
+        //nc.outputs.push(connector);
+        input.inputs.push(nc);
+
+        $t.set(nc.group.node, {
+            y:  33/2 + ((input.inputs.length-1) * 26)//(input.inputs.length < 3) ? 33/2 + (14 * input.inputs.length) : 33/2 + (22 * input.inputs.length)
+        });
+
+        $t.to(input.rect.node, .15, {
+            height: (input.inputs.length < 3) ? 33 + ((input.inputs.length-1) * 10) : 18 + ((input.inputs.length-1) * 26)
         });
 
 
-        this.line = s.line(20,2.5,20,2.5).attr({strokeWidth:5,stroke:"black",strokeLinecap:"round", pointerEvents:"none"});
-        //this.mini_circle.mousedown($.proxy(this.handleMouseDown, this));
-        //$(this.mini_circle).on("mousedown", $.proxy(this.handleMouseDown, this));
-        this.group.add(this.circle, this.hit_circle, this.mini_circle, this.mini_circle_l, this.line);*/
+
+        input.group.add(nc.group);
+        //this.last_n.input_connections.push(this.data.node);
+        //console.log(this.last_n, " LENGHT OF IMNPUT CONECT")
+        //this.data.node.
+
 
 
     },
+
 
     handleOptions : function() {
 
@@ -316,97 +250,6 @@ module.exports = Backbone.View.extend({
 
     },
 
-
-    /*handleMouseDown : function(event) {
-
-        //$(s.node).on("mousemove", $.proxy(this.handleMouseMove, this));
-        //$(s.node).on("mouseup", $.proxy(this.handleMouseUp, this));
-
-        //var x = event.target.parentElement._gsTransform.x + event.target._gsTransform.x;
-
-        var x = event.target._gsTransform.x
-        var y = event.target._gsTransform.y;
-
-        this.start_x = event.clientX - x;
-        this.start_y = event.clientY - y;
-        /!*$t.set(this.line.node, {
-            x:
-        });*!/
-
-
-    },
-
-    handleMouseMove : function(event) {
-
-        var x2 = event.clientX - this.start_x || 0;
-        var y2 = event.clientY - this.start_y || 0;
-
-        this.line.attr({
-            x2: x2,
-            y2: y2
-        })
-
-    },
-
-    handleMouseUp : function(event) {
-
-        $(s.node).off("mousemove", $.proxy(this.handleMouseMove, this));
-
-    },
-
-    handleDragStart : function(event) {
-
-        event.stopImmediatePropagation();
-        this.handleMouseDown(event);
-
-    },
-
-    handleDrag : function(event) {
-
-        event.stopImmediatePropagation();
-        this.handleMouseMove(event);
-
-        for(var a = 0 ; a < CM.designer.nodes.length ; a++) {
-
-            var n = CM.designer.nodes[a];
-            if( Draggable.hitTest(this.hit_circle.node, n.mini_circle_l.node) && n != this ) {
-                this.last_n = n;//.mini_circle_l.node;
-                return;
-            } else {
-                this.last_n = null;
-            }
-
-        }
-
-    },
-
-    handleDragEnd : function(event) {
-
-       /!* var x = this.last_n.group.node._gsTransform.x - this.group.node._gsTransform.x - 20;
-        var y = this.last_n.group.node._gsTransform.y - this.group.node._gsTransform.y + 2.5;
-
-
-        $t.set(this.hit_circle.node, {
-            x: x,
-            y: y
-        });
-
-        this.line.attr({
-            x2: x,
-            y2: y
-        });*!/
-
-        if(this.last_n) {
-
-            this.drawLine();
-
-            this.connections.push(this.last_n);
-            this.last_n.connectors.push(this);
-
-            //this.last_n.last_n = this;
-        }
-
-    },*/
 
     handleDragStart : function() {
 
@@ -431,13 +274,7 @@ module.exports = Backbone.View.extend({
 
     handleDragComplete : function() {
 
-        console.log("MOUSE DOWN");
-
         CM.designer.node_manager.update(this);
-
-        /* $t.set(this.title.node, {
-         autoAlpha:1
-         });*/
 
         $t.set(this.tf, {
            // autoAlpha:1
@@ -445,19 +282,6 @@ module.exports = Backbone.View.extend({
     },
 
     handleGroupDrag: function(event) {
-
-/*        if(this.connections.length > 0) {
-
-                this.drawLine();
-
-        }
-
-        for(var a = 0 ; a < this.connectors.length ; a++) {
-
-            this.connectors[a].drawLine();
-
-        }*/
-
 
         for(var a = 0 ; a < this.inputs.length ; a++) {
 
@@ -475,36 +299,9 @@ module.exports = Backbone.View.extend({
             x: MASTRI.x($(this.group.node)) + MASTRI.x($(this.title.node)),
             y: MASTRI.y($(this.group.node)) + MASTRI.y($(this.title.node))
         });
-     /*   $t.set(this.tf, {
-            x: this.data.position.x + MASTRI.x(this.title.node),
-            y: this.data.position.y + MASTRI.y(this.title.node)
-        });*/
-
-        /*for(var a = 0 ; a < this.connections.length ; a++) {
-
-            //this.handleDragEnd();
-
-        }*/
 
     },
 
-   /* drawLine : function() {
-
-        var x = this.last_n.group.node._gsTransform.x - this.group.node._gsTransform.x - 20;
-        var y = this.last_n.group.node._gsTransform.y - this.group.node._gsTransform.y + 2.5;
-
-
-        $t.set(this.hit_circle.node, {
-            x: x,
-            y: y
-        });
-
-        this.line.attr({
-            x2: x,
-            y2: y
-        });
-
-    },*/
 
     render: function() {
 

@@ -18,7 +18,6 @@ module.exports = Backbone.View.extend({
 
         this.hit_circle = s.circle(0,0,(this.data.type == "output") ? 10 : 0).attr("fill", "#ff0000");
 
-
         $t.set(this.hit_circle.node, {
             //x: 20,
             y: 0,
@@ -28,8 +27,6 @@ module.exports = Backbone.View.extend({
         this.hit = Draggable.create(this.hit_circle.node, {
             type:"x,y",
             edgeResistance:0.65,
-            //bounds:s.node,
-            //throwProps:true,
             onDragStart: this.handleDragStart,
             onDragStartScope: this,
             onDrag: this.handleDrag,
@@ -38,7 +35,8 @@ module.exports = Backbone.View.extend({
             onDragEndScope : this
         });
 
-        this.connector_point = s.circle(0,0,5);//.attr("data-num", this.data.num);
+        this.connector_point = s.circle(0,0,10).attr("fill", "#00ff00");
+
 
         $t.set(this.connector_point.node, {
             pointerEvents:"none"
@@ -93,14 +91,19 @@ module.exports = Backbone.View.extend({
                 
                 var i = n.inputs[b];
 
-                if (Draggable.hitTest(this.hit_circle.node, i.connector_point.node) && n != this) {
-                    console.log("HIT");
+                console.log(i,  " LAST N");
+
+                if (Draggable.hitTest(this.hit_circle.node, i.connector_point.node) && i != this.last_i)  {//} && n != this.node) {
+
                     this.last_n = n;
-                    //this.last_i = i;//.mini_circle_l.node;
+                    this.last_i = i;
                     return;
+
                 } else {
+
                     this.last_n = null;
                     this.last_i = null;
+
                 }
 
             }
@@ -111,32 +114,15 @@ module.exports = Backbone.View.extend({
 
     handleDragEnd : function(event) {
 
-       /* var x = this.last_n.group.node._gsTransform.x - this.group.node._gsTransform.x - 20;
-        var y = this.last_n.group.node._gsTransform.y - this.group.node._gsTransform.y + 2.5;
-
-
-        $t.set(this.hit_circle.node, {
-            x: x,
-            y: y
-        });
-
-        this.line.attr({
-            x2: x,
-            y2: y
-        });*/
-
         if(this.last_n) {
 
-            console.log(this.last_n, " LAST N");
-
+            this.data.node.updateOutput(this, this.last_n, this.last_i);
             this.drawLine();
 
-            this.data.node.output_connections.push(this.last_n);
-            this.last_n.input_connections.push(this.data.node);
+            //this.data.node.output_connections.push(this.last_n);
 
-            console.log(this.last_n, " LENGHT OF IMNPUT CONECT")
 
-            CM.sm.updateInputConnection(this.last_n);
+            //CM.sm.updateInputConnection(this.last_n);
 
             //this.last_n.last_n = this;
         } else {
@@ -167,18 +153,23 @@ module.exports = Backbone.View.extend({
 
         if(this.last_n) {
 
-            var x = this.last_n.group.node._gsTransform.x - this.data.node.group.node._gsTransform.x - this.group.node._gsTransform.x + this.last_n.inputs[0].group.node._gsTransform.x;
-            var y = this.last_n.group.node._gsTransform.y - this.data.node.group.node._gsTransform.y - this.group.node._gsTransform.y;
+            //TODO: update with .parentUntil
+            var x = this.last_n.group.node._gsTransform.x - this.data.node.group.node._gsTransform.x - this.group.node._gsTransform.x + this.last_i.group.node._gsTransform.x;
+            var y = this.last_n.group.node._gsTransform.y - this.data.node.group.node._gsTransform.y - this.group.node._gsTransform.y + this.last_i.group.node._gsTransform.y;
 
+            //var x = this.last_n.group.node._gsTransform.x
+            //var y = this.last_n.group.node._gsTransform.y
+            //y += MASTRI.y($(this.last_i.group.node))
+            //y += (14 * this.last_n.inputs.length)
 
             $t.set(this.hit_circle.node, {
                 x: x,
-                y: y + 33/2
+                y: y
             });
 
             this.line.attr({
                 x2: x,
-                y2: y + 33/2
+                y2: y
             });
 
         }
