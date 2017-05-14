@@ -208,6 +208,20 @@ module.exports = Backbone.View.extend({
 
     },
 
+    get : function() {
+
+        var o = {};
+        o.isOpen = this.isOpen;
+
+        return o
+
+    },
+
+    set : function() {
+
+
+    },
+
     render: function() {
 
     }

@@ -21355,6 +21355,9 @@ $(function() {
     window.CM = {};
 
     window.s = Snap($w.width(), $w.height());
+    $t.set($b, {
+        overflow: "hidden"
+    });
 
     window.MASTRI = new MASTRI();
 
@@ -21870,6 +21873,7 @@ module.exports = Backbone.View.extend({
         this.node_count = 0;
 
         this.workspace = s.group();
+
         this.workspace.appendTo(ref.designer_holder);
 
         for(var a = 0 ; a < 10 ; a++) {
@@ -21975,9 +21979,11 @@ var cryptoRandomString = require('crypto-random-string');
 
 module.exports = Backbone.View.extend({
 
-    initialize: function(obj){
+    initialize: function(obj) {
 
         this.data = obj;
+
+        console.log(this.data, " DATA");
 
         this.width = 200;
 
@@ -22012,21 +22018,17 @@ module.exports = Backbone.View.extend({
                 break;
         }
 
-
         this.rect = s.rect(0, 0, this.width, 33);
         this.rect.attr({
             fill: fill
         });
 
-/*        this.top_rect = s.rect(0,0,150, 5);
-        this.top_rect.attr({
-            fill: accent
-        });
-        $t.set(this.top_rect.node, {
-            y: -6
-        });*/
+        console.log(this.data, " IS OPEN");
 
         this.options = new Options(this.data.data.entry.options);
+        if(this.data.data.option_values) {
+            if(this.data.data.option_values.isOpen) this.options.open();
+        }
 
         $t.set([this.options.top_rect.node, this.options.rect.node, this.options.mask.node], {
             width: this.width
@@ -22035,6 +22037,8 @@ module.exports = Backbone.View.extend({
         this.options.top_rect.attr({
             fill: accent
         });
+
+
 
         this.label_rect = s.rect(0,0,17,17);
         this.label_rect.attr({
@@ -22492,6 +22496,40 @@ module.exports = Backbone.View.extend({
 
        // this.load();
 
+        $t.set(this.$el, {
+           x: 30,
+            y:100,
+            width: 200,
+            height: 40,
+            backgroundColor:"green",
+            color:"white",
+            cursor:"pointer"
+        });
+
+        this.$el.html("remove all");
+        this.$el.on('click', $.proxy(this.removeAll, this));
+        $b.append(this.$el);
+
+
+        this.load_btn = MASTRI.add("div");
+        $t.set(this.load_btn, {
+            x: 30,
+            y:140,
+            width: 200,
+            height: 40,
+            backgroundColor:"pink",
+            color:"white",
+            cursor:"pointer"
+        });
+
+        this.load_btn.html("load");
+        this.load_btn.on('click', $.proxy(this.load, this));
+        $b.append(this.load_btn);
+
+
+
+
+
     },
 
     update : function(node) {
@@ -22507,6 +22545,25 @@ module.exports = Backbone.View.extend({
         console.log(this.nodes);
     },
 
+    removeAll : function() {
+
+        $.ajax({
+            url : "http://localhost:3000/api/design/",
+            type: "DELETE",
+            success: function(data, textStatus, jqXHR)
+            {
+                console.log("node saved");
+                console.log(data, " < data");
+            },
+            //data - response from server
+
+            error: function (jqXHR, textStatus, errorThrown)
+            {
+            }
+
+        })
+
+    },
 
     find : function(node) {
 
@@ -22529,6 +22586,7 @@ module.exports = Backbone.View.extend({
         o.type = node.data.data.type;
         o.name = node.data.data.entry.name;
         o.local_id = node.local_id;
+        o.option_values = node.options.get();
 
         $.ajax({
             url : "http://localhost:3000/api/design/",
@@ -22584,7 +22642,8 @@ module.exports = Backbone.View.extend({
                 type : node.type,
                 entry : ne,
                 position: node.position,
-                local_id : node.local_id
+                local_id : node.local_id,
+                option_values : node.option_values
             }, false);
 
             this.nodes.push(nb);
@@ -22812,6 +22871,20 @@ module.exports = Backbone.View.extend({
 
 
         this.isOpen = false;
+
+    },
+
+    get : function() {
+
+        var o = {};
+        o.isOpen = this.isOpen;
+
+        return o
+
+    },
+
+    set : function() {
+
 
     },
 

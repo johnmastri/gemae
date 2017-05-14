@@ -11,6 +11,40 @@ module.exports = Backbone.View.extend({
 
        // this.load();
 
+        $t.set(this.$el, {
+           x: 30,
+            y:100,
+            width: 200,
+            height: 40,
+            backgroundColor:"green",
+            color:"white",
+            cursor:"pointer"
+        });
+
+        this.$el.html("remove all");
+        this.$el.on('click', $.proxy(this.removeAll, this));
+        $b.append(this.$el);
+
+
+        this.load_btn = MASTRI.add("div");
+        $t.set(this.load_btn, {
+            x: 30,
+            y:140,
+            width: 200,
+            height: 40,
+            backgroundColor:"pink",
+            color:"white",
+            cursor:"pointer"
+        });
+
+        this.load_btn.html("load");
+        this.load_btn.on('click', $.proxy(this.load, this));
+        $b.append(this.load_btn);
+
+
+
+
+
     },
 
     update : function(node) {
@@ -26,6 +60,25 @@ module.exports = Backbone.View.extend({
         console.log(this.nodes);
     },
 
+    removeAll : function() {
+
+        $.ajax({
+            url : "http://localhost:3000/api/design/",
+            type: "DELETE",
+            success: function(data, textStatus, jqXHR)
+            {
+                console.log("node saved");
+                console.log(data, " < data");
+            },
+            //data - response from server
+
+            error: function (jqXHR, textStatus, errorThrown)
+            {
+            }
+
+        })
+
+    },
 
     find : function(node) {
 
@@ -48,6 +101,7 @@ module.exports = Backbone.View.extend({
         o.type = node.data.data.type;
         o.name = node.data.data.entry.name;
         o.local_id = node.local_id;
+        o.option_values = node.options.get();
 
         $.ajax({
             url : "http://localhost:3000/api/design/",
@@ -103,7 +157,8 @@ module.exports = Backbone.View.extend({
                 type : node.type,
                 entry : ne,
                 position: node.position,
-                local_id : node.local_id
+                local_id : node.local_id,
+                option_values : node.option_values
             }, false);
 
             this.nodes.push(nb);

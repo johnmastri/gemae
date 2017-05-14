@@ -123,6 +123,8 @@ router.route('/*')
 
         });
 
+        //MyModel.collection.drop();
+
         console.log(req.url, " URL");
         /*let e = req.url.substr(1, req.url.length);
         let o = {
@@ -193,7 +195,19 @@ router.route('/*')
 
         })
 
-    .put((req, res) => {
+    .delete((req, res) => {
+
+        design.remove({}, (err, doc) => {
+
+            console.log(doc, " RES");
+
+            return res.send(doc);
+
+        })
+
+    });
+
+ /*   .put((req, res) => {
 
     console.log("PUT!!!");
     design.findOneAndUpdate({ _id: new ObjectId('5910e13f15de2ce81fb827d8') }, { name: 'jason bordsfsdne' }, {new : true}, (err, updated) => {
@@ -201,7 +215,7 @@ router.route('/*')
             return res.json({message: ' design updated'});
         })
 
-    });
+    });*/
 
 
 

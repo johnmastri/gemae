@@ -19,6 +19,9 @@ $(function() {
     window.CM = {};
 
     window.s = Snap($w.width(), $w.height());
+    $t.set($b, {
+        overflow: "hidden"
+    });
 
     window.MASTRI = new MASTRI();
 

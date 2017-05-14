@@ -17,6 +17,7 @@ module.exports = Backbone.View.extend({
         this.node_count = 0;
 
         this.workspace = s.group();
+
         this.workspace.appendTo(ref.designer_holder);
 
         for(var a = 0 ; a < 10 ; a++) {

@@ -8,9 +8,11 @@ var cryptoRandomString = require('crypto-random-string');
 
 module.exports = Backbone.View.extend({
 
-    initialize: function(obj){
+    initialize: function(obj) {
 
         this.data = obj;
+
+        console.log(this.data, " DATA");
 
         this.width = 200;
 
@@ -45,21 +47,17 @@ module.exports = Backbone.View.extend({
                 break;
         }
 
-
         this.rect = s.rect(0, 0, this.width, 33);
         this.rect.attr({
             fill: fill
         });
 
-/*        this.top_rect = s.rect(0,0,150, 5);
-        this.top_rect.attr({
-            fill: accent
-        });
-        $t.set(this.top_rect.node, {
-            y: -6
-        });*/
+        console.log(this.data, " IS OPEN");
 
         this.options = new Options(this.data.data.entry.options);
+        if(this.data.data.option_values) {
+            if(this.data.data.option_values.isOpen) this.options.open();
+        }
 
         $t.set([this.options.top_rect.node, this.options.rect.node, this.options.mask.node], {
             width: this.width
@@ -68,6 +66,8 @@ module.exports = Backbone.View.extend({
         this.options.top_rect.attr({
             fill: accent
         });
+
+
 
         this.label_rect = s.rect(0,0,17,17);
         this.label_rect.attr({
