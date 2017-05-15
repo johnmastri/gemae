@@ -41,7 +41,7 @@ module.exports = Backbone.View.extend({
         this.load_btn.on('click', $.proxy(this.load, this));
         $b.append(this.load_btn);
 
-
+        CM.keys.register("l", $.proxy(this.load, this));
 
 
 

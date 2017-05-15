@@ -10,27 +10,15 @@ module.exports = Backbone.View.extend({
 
     initialize: function(){
 
-/*        $t.set(this.$el, {
-            width: "100%",
-            height: "100%",
-            backgroundColor:"blue",
-            color:"white"
-        });
-
-        this.$el.html("THIS IS THE DESIGN SECTION");*/
-
         this.bg = s.rect(0,0,$w.width(),$w.height()).attr("fill", "#737373");
 
-        this.group = s.group();//.attr("fill", "#737373");;
+        this.group = s.group();
         this.group.attr({name:"design_mode"});
-
-        //$(this.bg.node).on("click", $.proxy(this.handleBg, this));
 
        this.group.add(this.bg);
 
         this.designer_holder = s.group();
         this.group.add(this.designer_holder);
-
 
         CM.sm = new StructureManager(this);
         CM.designer = new Designer(this);
@@ -49,6 +37,8 @@ module.exports = Backbone.View.extend({
             //throwProps:true
         });
 
+
+        //temporary for filling out forms
 
         this.holder = MASTRI.add("div", {
             position:"relative",

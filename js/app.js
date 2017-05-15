@@ -7,6 +7,7 @@ var DesignMode = require("./modes/design/DesignMode");
 var PopulateMode = require("./modes/populate/PopulateMode");
 var GenerateMode = require("./modes/generate/GenerateMode");
 var MASTRI = require("./mastri/Mastri");
+var Keys = require("./application/Keys")
 
 Backbone.$ = $;
 
@@ -37,8 +38,9 @@ $(function() {
 
     window.main.append(window.s.node);
 
-    //CM.sm = new StructureManager();
-    //CM.designer = new Designer();
+
+    CM.keys = new Keys();
+
     CM.mode_group = s.group();
 
     CM.design_mode = new DesignMode();

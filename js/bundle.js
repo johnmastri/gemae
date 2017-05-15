@@ -21343,6 +21343,7 @@ var DesignMode = require("./modes/design/DesignMode");
 var PopulateMode = require("./modes/populate/PopulateMode");
 var GenerateMode = require("./modes/generate/GenerateMode");
 var MASTRI = require("./mastri/Mastri");
+var Keys = require("./application/Keys")
 
 Backbone.$ = $;
 
@@ -21373,8 +21374,9 @@ $(function() {
 
     window.main.append(window.s.node);
 
-    //CM.sm = new StructureManager();
-    //CM.designer = new Designer();
+
+    CM.keys = new Keys();
+
     CM.mode_group = s.group();
 
     CM.design_mode = new DesignMode();
@@ -21386,7 +21388,55 @@ $(function() {
     CM.navigation = new Navigation();
 
 });
-},{"./mastri/Mastri":141,"./modes/design/DesignMode":143,"./modes/generate/GenerateMode":156,"./modes/populate/PopulateMode":157,"./navigation/Navigation":158,"backbone":159,"jquery":161}],141:[function(require,module,exports){
+},{"./application/Keys":141,"./mastri/Mastri":142,"./modes/design/DesignMode":144,"./modes/generate/GenerateMode":157,"./modes/populate/PopulateMode":158,"./navigation/Navigation":159,"backbone":160,"jquery":162}],141:[function(require,module,exports){
+"use strict";
+
+var $ = require('jquery');
+var Backbone = require('backbone');
+
+module.exports = Backbone.View.extend({
+
+    initialize: function(obj){
+
+        this.data = obj || null;
+
+        this.keys = [];
+
+        this.keys.push({
+            key: "x",
+            func: function() { console.log("FUCK YOU BITCH"); }
+        });
+
+        $b.on("keypress", $.proxy(this.handleKeypress, this));
+
+    },
+
+   register : function(key, func) {
+
+        this.keys.push({
+            key: key,
+            func: func
+        });
+
+   },
+
+    unregister : function(key) {
+
+        //findIndex()
+
+    },
+
+   handleKeypress : function(event) {
+
+       console.log(event.key);
+
+       var k = this.keys.find(function(x) { return x.key === event.key });
+       k.func();
+
+   }
+
+});
+},{"backbone":160,"jquery":162}],142:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 
@@ -21488,7 +21538,7 @@ module.exports = Backbone.View.extend({
 });
 
 //module.exports = MASTRI;
-},{"backbone":159,"jquery":161}],142:[function(require,module,exports){
+},{"backbone":160,"jquery":162}],143:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -21502,15 +21552,16 @@ module.exports = Backbone.View.extend({
 
         this.group = s.group();
 
-        // adds node type to structure manager
-       /* if(this.data.type == "structure") {
-            CM.sm.add(this);
-        }*/
+        $(this.group.node).on("mouseenter", $.proxy(this.over, this));
 
-        this.hit_circle = s.circle(0,0,(this.data.type == "output") ? 10 : 0).attr("fill", "#ff0000");
+        this.input = null;
+        this.output = null;
+        this.input_connectors = [];
+
+        this.hit_circle = s.circle(0,0,(this.data.type === "output") ? 5 : 0).attr("fill", "#ff0000");
 
         $t.set(this.hit_circle.node, {
-            //x: 20,
+            x: 0,
             y: 0,
             cursor:"pointer"
         });
@@ -21534,13 +21585,16 @@ module.exports = Backbone.View.extend({
         });
 
         this.line = s.line(0,0,0,0).attr({strokeWidth:1,stroke:"black",strokeLinecap:"round", pointerEvents:"none"});
-        this.group.add(this.hit_circle, this.connector_point, this.line);
-
-        this.connections = [];
-        this.connectors = [];
+        this.group.add(this.connector_point, this.line, this.hit_circle);
 
         this.last_n = null;
         this.last_i = null;
+
+    },
+
+    over : function() {
+
+        //console.log(this, " S");
 
     },
 
@@ -21554,11 +21608,13 @@ module.exports = Backbone.View.extend({
 
         event.stopImmediatePropagation();
 
-        var x = event.target._gsTransform.x;
-        var y = event.target._gsTransform.y;
+        var x = this.hit_circle.node._gsTransform.x || 0;
+        var y = this.hit_circle.node._gsTransform.y || 0;
 
         this.start_x = event.clientX - x;
         this.start_y = event.clientY - y;
+
+        this.disabled_connectors = [];
 
     },
 
@@ -21574,20 +21630,38 @@ module.exports = Backbone.View.extend({
             y2: y2
         });
 
+
+        //TODO: only loop through nodes with correlating inputs
         for(var a = 0 ; a < CM.designer.nodes.length ; a++) {
 
             var n = CM.designer.nodes[a];
 
-            for(var b = 0 ; b < n.inputs.length ; b++) {
+            var l = (this.connector != null) ? n.inputs.length - 1 : n.inputs.length;
+
+            if(this.connector && n === this.connector.data.node && this.disabled_connectors.length === 0) {
+
+                //if( this.disabled_connectors.findIndex(function(x) {  }) == -1
+                //if(this.disabled_connectors.length === 0) {
+                    var hi = n.inputs[n.inputs.length - 1];
+                    this.disableConnectors(hi);
+                    this.disabled_connectors.push(hi)
+               //}
+
+            }
+
+            for(var b = 0 ; b < l ; b++) {
                 
                 var i = n.inputs[b];
 
-                console.log(i,  " LAST N");
-
-                if (Draggable.hitTest(this.hit_circle.node, i.connector_point.node) && i != this.last_i)  {//} && n != this.node) {
+                if (Draggable.hitTest(this.hit_circle.node, i.connector_point.node))  {//} && n != this.node) {
 
                     this.last_n = n;
                     this.last_i = i;
+
+                    /*if(this.connector != null && b === n.inputs.length - 1) {
+                        console.log("CAN'T DROP ME INTO THE LAST")
+                    }*/
+
                     return;
 
                 } else {
@@ -21605,17 +21679,40 @@ module.exports = Backbone.View.extend({
 
     handleDragEnd : function(event) {
 
-        if(this.last_n) {
+      if(this.last_n) {
 
-            this.data.node.updateOutput(this, this.last_n, this.last_i);
-            this.drawLine();
+          //dragged a connector but decided to put it back where it started from
+          if(this.last_i.connector == this) {
 
-            //this.data.node.output_connections.push(this.last_n);
+              this.enableConnectors();
+              this.drawLine();
+              return;
 
+          }
 
-            //CM.sm.updateInputConnection(this.last_n);
+          //TODO: add mini menu for replace, insert
+          //trying to drag over a node that is already taken
+          if(this.last_i.connector) {
 
-            //this.last_n.last_n = this;
+              $t.to(this.hit_circle.node, .2, {
+                  x: 0,
+                  y: 0,
+                  onUpdate : this.updateLine,
+                  onUpdateScope : this,
+                  ease: Circ.easeInOut
+              });
+
+              if(this.connector) this.data.node.removeOutput(this);
+
+              this.enableConnectors();
+
+              return;
+          }
+
+          if(this.cid != this.last_i.cid) this.data.node.updateOutput(this, this.last_n, this.last_i);
+
+          this.drawLine();
+
         } else {
 
             $t.to(this.hit_circle.node, .2, {
@@ -21624,7 +21721,11 @@ module.exports = Backbone.View.extend({
                 onUpdate : this.updateLine,
                 onUpdateScope : this,
                 ease: Circ.easeInOut
-            })
+            });
+
+            if(this.connector) this.data.node.removeOutput(this);
+
+          this.enableConnectors();
 
         }
 
@@ -21648,11 +21749,6 @@ module.exports = Backbone.View.extend({
             var x = this.last_n.group.node._gsTransform.x - this.data.node.group.node._gsTransform.x - this.group.node._gsTransform.x + this.last_i.group.node._gsTransform.x;
             var y = this.last_n.group.node._gsTransform.y - this.data.node.group.node._gsTransform.y - this.group.node._gsTransform.y + this.last_i.group.node._gsTransform.y;
 
-            //var x = this.last_n.group.node._gsTransform.x
-            //var y = this.last_n.group.node._gsTransform.y
-            //y += MASTRI.y($(this.last_i.group.node))
-            //y += (14 * this.last_n.inputs.length)
-
             $t.set(this.hit_circle.node, {
                 x: x,
                 y: y
@@ -21667,27 +21763,45 @@ module.exports = Backbone.View.extend({
 
     },
 
+    disableConnectors : function(hi) {
+
+        console.log(hi, " H<<<");
+
+        hi.connector_point.attr({
+            fill:"#333333"
+        });
+
+
+    },
+
+    enableConnectors : function() {
+
+        console.log(hi, " H<<<");
+
+        for(var a in this.disabled_connectors) {
+            var hi = this.disabled_connectors[a];
+            hi.connector_point.attr({
+                fill: "#00ff00"
+            })
+        }
+
+    },
+
     update : function() {
 
         this.drawLine();
 
-        for(var a = 0 ; a < this.data.node.input_connections.length ; a++) {
+        var i = this.data.node.inputs;
 
-            var c = this.data.node.input_connections[a];
-            for(var b in c.outputs) c.outputs[b].drawLine();
+        for(var a = 0 ; a < i.length ; a++) {
+
+            var c = this.data.node.inputs[a];
+
+            if(c.connector) {
+                c.connector.drawLine();
+            }
 
         }
-
-        //if(this.last_n) {
-
-           /* for (var a = 0; a < this.last_n.input_connections.length; a++) {
-
-                var c = this.data.node.input_connections[a];
-                for (var b in c.inputs) c.inputs[b].drawLine();
-
-            }*/
-
-        //}
 
     },
 
@@ -21696,7 +21810,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":159,"jquery":161}],143:[function(require,module,exports){
+},{"backbone":160,"jquery":162}],144:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -21709,27 +21823,15 @@ module.exports = Backbone.View.extend({
 
     initialize: function(){
 
-/*        $t.set(this.$el, {
-            width: "100%",
-            height: "100%",
-            backgroundColor:"blue",
-            color:"white"
-        });
-
-        this.$el.html("THIS IS THE DESIGN SECTION");*/
-
         this.bg = s.rect(0,0,$w.width(),$w.height()).attr("fill", "#737373");
 
-        this.group = s.group();//.attr("fill", "#737373");;
+        this.group = s.group();
         this.group.attr({name:"design_mode"});
-
-        //$(this.bg.node).on("click", $.proxy(this.handleBg, this));
 
        this.group.add(this.bg);
 
         this.designer_holder = s.group();
         this.group.add(this.designer_holder);
-
 
         CM.sm = new StructureManager(this);
         CM.designer = new Designer(this);
@@ -21748,6 +21850,8 @@ module.exports = Backbone.View.extend({
             //throwProps:true
         });
 
+
+        //temporary for filling out forms
 
         this.holder = MASTRI.add("div", {
             position:"relative",
@@ -21844,7 +21948,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./Designer":144,"./StructureManager":148,"backbone":159,"jquery":161}],144:[function(require,module,exports){
+},{"./Designer":145,"./StructureManager":149,"backbone":160,"jquery":162}],145:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -21959,7 +22063,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./NodeBase":145,"./NodeManager":146,"./menu/NodeMenu":151,"backbone":159,"jquery":161}],145:[function(require,module,exports){
+},{"./NodeBase":146,"./NodeManager":147,"./menu/NodeMenu":152,"backbone":160,"jquery":162}],146:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -22171,35 +22275,70 @@ module.exports = Backbone.View.extend({
 
     },
 
-    updateOutput : function(output, input, connector) {
+    //               the output connector  the node  the input connector
+    updateOutput : function(output_connector, input, input_connector) {
 
         var nc = new Connector({
             type:"input",
-            node: this
+            node: input
         });
 
-        //nc.outputs.push(connector);
         input.inputs.push(nc);
 
+        output_connector.connector = input_connector;
+        input_connector.connector = output_connector;
+
+        this.outputs.push(output_connector);
+
         $t.set(nc.group.node, {
-            y:  33/2 + ((input.inputs.length-1) * 26)//(input.inputs.length < 3) ? 33/2 + (14 * input.inputs.length) : 33/2 + (22 * input.inputs.length)
+            y:  33/2 + ((input.inputs.length-1) * 24)//(input.inputs.length < 3) ? 33/2 + (14 * input.inputs.length) : 33/2 + (22 * input.inputs.length)
         });
 
         $t.to(input.rect.node, .15, {
-            height: (input.inputs.length < 3) ? 33 + ((input.inputs.length-1) * 10) : 18 + ((input.inputs.length-1) * 26)
+            height: (input.inputs.length < 3) ? 33 + ((input.inputs.length-1) * 10) : 18 + ((input.inputs.length-1) * 24)
         });
 
-
-
         input.group.add(nc.group);
-        //this.last_n.input_connections.push(this.data.node);
-        //console.log(this.last_n, " LENGHT OF IMNPUT CONECT")
-        //this.data.node.
-
-
 
     },
 
+    removeOutput : function(output_connector) {
+
+        var i = output_connector.connector;
+
+        //remove from dom
+        i.group.remove();
+
+        var n = i.data.node;
+        var f = n.inputs.findIndex(function(x) { return i.cid === x.cid });
+
+        n.inputs.splice(f,1);
+
+        for(var a = f ; a < n.inputs.length ; a++) {
+
+            var is = n.inputs[a];
+            $t.to(is.group.node, .25, {
+                y:  33/2 + ((a) * 24),//(input.inputs.length < 3) ? 33/2 + (14 * input.inputs.length) : 33/2 + (22 * input.inputs.length)
+                ease: Back.easeInOut,
+                onUpdate: is.data.node.updateLines,
+                onUpdateScope: is.data.node
+            });
+
+        }
+
+        $t.to(n.rect.node, .15, {
+            height: (n.inputs.length < 3) ? 33 + ((n.inputs.length-1) * 10) : 18 + ((n.inputs.length-1) * 24)
+        });
+
+        //clear backbone data
+        i.remove();
+
+        output_connector.connector = null;
+        output_connector.last_n = null;
+        output_connector.last_i = null;
+
+
+    },
 
     handleOptions : function() {
 
@@ -22214,15 +22353,6 @@ module.exports = Backbone.View.extend({
 
 
     handleDragStart : function() {
-
-        console.log("MOUSE DOWN");
-
-       /* $t.set(this.title.node, {
-            autoAlpha:1
-        });*/
-
-       //this.options.open();
-
 
         event.preventDefault();
         event.stopImmediatePropagation();
@@ -22245,17 +22375,8 @@ module.exports = Backbone.View.extend({
 
     handleGroupDrag: function(event) {
 
-        for(var a = 0 ; a < this.inputs.length ; a++) {
+        this.updateLines();
 
-            this.inputs[a].update();
-
-        }
-
-        for(a = 0 ; a < this.outputs.length ; a++) {
-
-            this.outputs[a].update();
-
-        }
 
         $t.set(this.tf, {
             x: MASTRI.x($(this.group.node)) + MASTRI.x($(this.title.node)),
@@ -22264,13 +22385,28 @@ module.exports = Backbone.View.extend({
 
     },
 
+    updateLines : function() {
+
+        for(var a = 0 ; a < this.inputs.length ; a++) {
+
+            this.inputs[a].update();
+
+        }
+
+        for(var a = 0 ; a < this.outputs.length ; a++) {
+
+            this.outputs[a].drawLine();
+
+        }
+
+    },
 
     render: function() {
 
     }
 
 });
-},{"./Connector":142,"./Options":147,"backbone":159,"crypto-random-string":162,"jquery":161}],146:[function(require,module,exports){
+},{"./Connector":143,"./Options":148,"backbone":160,"crypto-random-string":163,"jquery":162}],147:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -22314,7 +22450,7 @@ module.exports = Backbone.View.extend({
         this.load_btn.on('click', $.proxy(this.load, this));
         $b.append(this.load_btn);
 
-
+        CM.keys.register("l", $.proxy(this.load, this));
 
 
 
@@ -22451,7 +22587,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":159,"jquery":161}],147:[function(require,module,exports){
+},{"backbone":160,"jquery":162}],148:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -22681,7 +22817,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./Connector":142,"./options/Option":155,"backbone":159,"jquery":161}],148:[function(require,module,exports){
+},{"./Connector":143,"./options/Option":156,"backbone":160,"jquery":162}],149:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -22801,7 +22937,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":159,"jquery":161}],149:[function(require,module,exports){
+},{"backbone":160,"jquery":162}],150:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -22840,7 +22976,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./MenuListItem":150,"backbone":159,"jquery":161}],150:[function(require,module,exports){
+},{"./MenuListItem":151,"backbone":160,"jquery":162}],151:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -22882,7 +23018,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":159,"jquery":161}],151:[function(require,module,exports){
+},{"backbone":160,"jquery":162}],152:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23029,8 +23165,9 @@ module.exports = Backbone.View.extend({
         ];
 
         //TODO: update from database types or have dedicated types class -- making global for now
-
         CM.node_types = this.menu;
+
+        this.isOpen = true;
 
         this.menu_lists = [];
 
@@ -23049,10 +23186,6 @@ module.exports = Backbone.View.extend({
 
         }
 
-        console.log($b.height());
-
-        //this.render();
-
         this.close_btn = s.rect(0,0,30,30);
         $t.set(this.close_btn.node, {
            x: $(this.group.node).width() - $(this.close_btn.node).width() - 1,
@@ -23060,8 +23193,23 @@ module.exports = Backbone.View.extend({
             pointerEvents:"auto",
             cursor:"pointer"
         });
-        $(this.close_btn.node).on("click", $.proxy(this.handleClose, this));
+        $(this.close_btn.node).on("click", $.proxy(this.toggleVisibility, this));
         this.group.add(this.close_btn);
+
+        CM.keys.register('m', $.proxy(this.toggleVisibility, this));
+
+    },
+
+    toggleVisibility : function() {
+
+        if(this.isOpen) {
+            this.close()
+        } else {
+            this.show();
+        }
+
+        this.isOpen = !this.isOpen;
+
 
     },
 
@@ -23071,9 +23219,17 @@ module.exports = Backbone.View.extend({
 
     },
 
+    show : function() {
+
+        $t.to(this.group.node, 0, {
+            autoAlpha: 1
+        })
+
+    },
+
     close : function() {
 
-        $t.to(this.group.node, .2, {
+        $t.to(this.group.node, 0, {
             autoAlpha: 0
         })
 
@@ -23087,7 +23243,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./MenuList":149,"backbone":159,"jquery":161}],152:[function(require,module,exports){
+},{"./MenuList":150,"backbone":160,"jquery":162}],153:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23148,7 +23304,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":159,"jquery":161}],153:[function(require,module,exports){
+},{"backbone":160,"jquery":162}],154:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23329,7 +23485,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":159,"jquery":161,"randomcolor":163}],154:[function(require,module,exports){
+},{"backbone":160,"jquery":162,"randomcolor":164}],155:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23377,7 +23533,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":159,"jquery":161}],155:[function(require,module,exports){
+},{"backbone":160,"jquery":162}],156:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23467,7 +23623,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./BooleanOption":152,"./DropdownOption":153,"./NumberOption":154,"backbone":159,"jquery":161,"randomcolor":163}],156:[function(require,module,exports){
+},{"./BooleanOption":153,"./DropdownOption":154,"./NumberOption":155,"backbone":160,"jquery":162,"randomcolor":164}],157:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23500,7 +23656,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":159,"jquery":161}],157:[function(require,module,exports){
+},{"backbone":160,"jquery":162}],158:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23533,7 +23689,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":159,"jquery":161}],158:[function(require,module,exports){
+},{"backbone":160,"jquery":162}],159:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23603,7 +23759,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":159,"jquery":161}],159:[function(require,module,exports){
+},{"backbone":160,"jquery":162}],160:[function(require,module,exports){
 (function (global){
 //     Backbone.js 1.3.3
 
@@ -25527,7 +25683,7 @@ module.exports = Backbone.View.extend({
 });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"jquery":161,"underscore":160}],160:[function(require,module,exports){
+},{"jquery":162,"underscore":161}],161:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -27077,7 +27233,7 @@ module.exports = Backbone.View.extend({
   }
 }.call(this));
 
-},{}],161:[function(require,module,exports){
+},{}],162:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.1.1
  * https://jquery.com/
@@ -37299,7 +37455,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],162:[function(require,module,exports){
+},{}],163:[function(require,module,exports){
 'use strict';
 const crypto = require('crypto');
 
@@ -37311,7 +37467,7 @@ module.exports = len => {
 	return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
 };
 
-},{"crypto":54}],163:[function(require,module,exports){
+},{"crypto":54}],164:[function(require,module,exports){
 // randomColor by David Merfield under the CC0 license
 // https://github.com/davidmerfield/randomColor/
 

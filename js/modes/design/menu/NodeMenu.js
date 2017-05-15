@@ -144,8 +144,9 @@ module.exports = Backbone.View.extend({
         ];
 
         //TODO: update from database types or have dedicated types class -- making global for now
-
         CM.node_types = this.menu;
+
+        this.isOpen = true;
 
         this.menu_lists = [];
 
@@ -164,10 +165,6 @@ module.exports = Backbone.View.extend({
 
         }
 
-        console.log($b.height());
-
-        //this.render();
-
         this.close_btn = s.rect(0,0,30,30);
         $t.set(this.close_btn.node, {
            x: $(this.group.node).width() - $(this.close_btn.node).width() - 1,
@@ -175,8 +172,23 @@ module.exports = Backbone.View.extend({
             pointerEvents:"auto",
             cursor:"pointer"
         });
-        $(this.close_btn.node).on("click", $.proxy(this.handleClose, this));
+        $(this.close_btn.node).on("click", $.proxy(this.toggleVisibility, this));
         this.group.add(this.close_btn);
+
+        CM.keys.register('m', $.proxy(this.toggleVisibility, this));
+
+    },
+
+    toggleVisibility : function() {
+
+        if(this.isOpen) {
+            this.close()
+        } else {
+            this.show();
+        }
+
+        this.isOpen = !this.isOpen;
+
 
     },
 
@@ -186,9 +198,17 @@ module.exports = Backbone.View.extend({
 
     },
 
+    show : function() {
+
+        $t.to(this.group.node, 0, {
+            autoAlpha: 1
+        })
+
+    },
+
     close : function() {
 
-        $t.to(this.group.node, .2, {
+        $t.to(this.group.node, 0, {
             autoAlpha: 0
         })
 

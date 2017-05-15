@@ -11,15 +11,16 @@ module.exports = Backbone.View.extend({
 
         this.group = s.group();
 
-        // adds node type to structure manager
-       /* if(this.data.type == "structure") {
-            CM.sm.add(this);
-        }*/
+        $(this.group.node).on("mouseenter", $.proxy(this.over, this));
 
-        this.hit_circle = s.circle(0,0,(this.data.type == "output") ? 10 : 0).attr("fill", "#ff0000");
+        this.input = null;
+        this.output = null;
+        this.input_connectors = [];
+
+        this.hit_circle = s.circle(0,0,(this.data.type === "output") ? 5 : 0).attr("fill", "#ff0000");
 
         $t.set(this.hit_circle.node, {
-            //x: 20,
+            x: 0,
             y: 0,
             cursor:"pointer"
         });
@@ -43,13 +44,16 @@ module.exports = Backbone.View.extend({
         });
 
         this.line = s.line(0,0,0,0).attr({strokeWidth:1,stroke:"black",strokeLinecap:"round", pointerEvents:"none"});
-        this.group.add(this.hit_circle, this.connector_point, this.line);
-
-        this.connections = [];
-        this.connectors = [];
+        this.group.add(this.connector_point, this.line, this.hit_circle);
 
         this.last_n = null;
         this.last_i = null;
+
+    },
+
+    over : function() {
+
+        //console.log(this, " S");
 
     },
 
@@ -63,11 +67,13 @@ module.exports = Backbone.View.extend({
 
         event.stopImmediatePropagation();
 
-        var x = event.target._gsTransform.x;
-        var y = event.target._gsTransform.y;
+        var x = this.hit_circle.node._gsTransform.x || 0;
+        var y = this.hit_circle.node._gsTransform.y || 0;
 
         this.start_x = event.clientX - x;
         this.start_y = event.clientY - y;
+
+        this.disabled_connectors = [];
 
     },
 
@@ -83,20 +89,38 @@ module.exports = Backbone.View.extend({
             y2: y2
         });
 
+
+        //TODO: only loop through nodes with correlating inputs
         for(var a = 0 ; a < CM.designer.nodes.length ; a++) {
 
             var n = CM.designer.nodes[a];
 
-            for(var b = 0 ; b < n.inputs.length ; b++) {
+            var l = (this.connector != null) ? n.inputs.length - 1 : n.inputs.length;
+
+            if(this.connector && n === this.connector.data.node && this.disabled_connectors.length === 0) {
+
+                //if( this.disabled_connectors.findIndex(function(x) {  }) == -1
+                //if(this.disabled_connectors.length === 0) {
+                    var hi = n.inputs[n.inputs.length - 1];
+                    this.disableConnectors(hi);
+                    this.disabled_connectors.push(hi)
+               //}
+
+            }
+
+            for(var b = 0 ; b < l ; b++) {
                 
                 var i = n.inputs[b];
 
-                console.log(i,  " LAST N");
-
-                if (Draggable.hitTest(this.hit_circle.node, i.connector_point.node) && i != this.last_i)  {//} && n != this.node) {
+                if (Draggable.hitTest(this.hit_circle.node, i.connector_point.node))  {//} && n != this.node) {
 
                     this.last_n = n;
                     this.last_i = i;
+
+                    /*if(this.connector != null && b === n.inputs.length - 1) {
+                        console.log("CAN'T DROP ME INTO THE LAST")
+                    }*/
+
                     return;
 
                 } else {
@@ -114,17 +138,40 @@ module.exports = Backbone.View.extend({
 
     handleDragEnd : function(event) {
 
-        if(this.last_n) {
+      if(this.last_n) {
 
-            this.data.node.updateOutput(this, this.last_n, this.last_i);
-            this.drawLine();
+          //dragged a connector but decided to put it back where it started from
+          if(this.last_i.connector == this) {
 
-            //this.data.node.output_connections.push(this.last_n);
+              this.enableConnectors();
+              this.drawLine();
+              return;
 
+          }
 
-            //CM.sm.updateInputConnection(this.last_n);
+          //TODO: add mini menu for replace, insert
+          //trying to drag over a node that is already taken
+          if(this.last_i.connector) {
 
-            //this.last_n.last_n = this;
+              $t.to(this.hit_circle.node, .2, {
+                  x: 0,
+                  y: 0,
+                  onUpdate : this.updateLine,
+                  onUpdateScope : this,
+                  ease: Circ.easeInOut
+              });
+
+              if(this.connector) this.data.node.removeOutput(this);
+
+              this.enableConnectors();
+
+              return;
+          }
+
+          if(this.cid != this.last_i.cid) this.data.node.updateOutput(this, this.last_n, this.last_i);
+
+          this.drawLine();
+
         } else {
 
             $t.to(this.hit_circle.node, .2, {
@@ -133,7 +180,11 @@ module.exports = Backbone.View.extend({
                 onUpdate : this.updateLine,
                 onUpdateScope : this,
                 ease: Circ.easeInOut
-            })
+            });
+
+            if(this.connector) this.data.node.removeOutput(this);
+
+          this.enableConnectors();
 
         }
 
@@ -157,11 +208,6 @@ module.exports = Backbone.View.extend({
             var x = this.last_n.group.node._gsTransform.x - this.data.node.group.node._gsTransform.x - this.group.node._gsTransform.x + this.last_i.group.node._gsTransform.x;
             var y = this.last_n.group.node._gsTransform.y - this.data.node.group.node._gsTransform.y - this.group.node._gsTransform.y + this.last_i.group.node._gsTransform.y;
 
-            //var x = this.last_n.group.node._gsTransform.x
-            //var y = this.last_n.group.node._gsTransform.y
-            //y += MASTRI.y($(this.last_i.group.node))
-            //y += (14 * this.last_n.inputs.length)
-
             $t.set(this.hit_circle.node, {
                 x: x,
                 y: y
@@ -176,27 +222,45 @@ module.exports = Backbone.View.extend({
 
     },
 
+    disableConnectors : function(hi) {
+
+        console.log(hi, " H<<<");
+
+        hi.connector_point.attr({
+            fill:"#333333"
+        });
+
+
+    },
+
+    enableConnectors : function() {
+
+        console.log(hi, " H<<<");
+
+        for(var a in this.disabled_connectors) {
+            var hi = this.disabled_connectors[a];
+            hi.connector_point.attr({
+                fill: "#00ff00"
+            })
+        }
+
+    },
+
     update : function() {
 
         this.drawLine();
 
-        for(var a = 0 ; a < this.data.node.input_connections.length ; a++) {
+        var i = this.data.node.inputs;
 
-            var c = this.data.node.input_connections[a];
-            for(var b in c.outputs) c.outputs[b].drawLine();
+        for(var a = 0 ; a < i.length ; a++) {
+
+            var c = this.data.node.inputs[a];
+
+            if(c.connector) {
+                c.connector.drawLine();
+            }
 
         }
-
-        //if(this.last_n) {
-
-           /* for (var a = 0; a < this.last_n.input_connections.length; a++) {
-
-                var c = this.data.node.input_connections[a];
-                for (var b in c.inputs) c.inputs[b].drawLine();
-
-            }*/
-
-        //}
 
     },
 

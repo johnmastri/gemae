@@ -209,35 +209,70 @@ module.exports = Backbone.View.extend({
 
     },
 
-    updateOutput : function(output, input, connector) {
+    //               the output connector  the node  the input connector
+    updateOutput : function(output_connector, input, input_connector) {
 
         var nc = new Connector({
             type:"input",
-            node: this
+            node: input
         });
 
-        //nc.outputs.push(connector);
         input.inputs.push(nc);
 
+        output_connector.connector = input_connector;
+        input_connector.connector = output_connector;
+
+        this.outputs.push(output_connector);
+
         $t.set(nc.group.node, {
-            y:  33/2 + ((input.inputs.length-1) * 26)//(input.inputs.length < 3) ? 33/2 + (14 * input.inputs.length) : 33/2 + (22 * input.inputs.length)
+            y:  33/2 + ((input.inputs.length-1) * 24)//(input.inputs.length < 3) ? 33/2 + (14 * input.inputs.length) : 33/2 + (22 * input.inputs.length)
         });
 
         $t.to(input.rect.node, .15, {
-            height: (input.inputs.length < 3) ? 33 + ((input.inputs.length-1) * 10) : 18 + ((input.inputs.length-1) * 26)
+            height: (input.inputs.length < 3) ? 33 + ((input.inputs.length-1) * 10) : 18 + ((input.inputs.length-1) * 24)
         });
 
-
-
         input.group.add(nc.group);
-        //this.last_n.input_connections.push(this.data.node);
-        //console.log(this.last_n, " LENGHT OF IMNPUT CONECT")
-        //this.data.node.
-
-
 
     },
 
+    removeOutput : function(output_connector) {
+
+        var i = output_connector.connector;
+
+        //remove from dom
+        i.group.remove();
+
+        var n = i.data.node;
+        var f = n.inputs.findIndex(function(x) { return i.cid === x.cid });
+
+        n.inputs.splice(f,1);
+
+        for(var a = f ; a < n.inputs.length ; a++) {
+
+            var is = n.inputs[a];
+            $t.to(is.group.node, .25, {
+                y:  33/2 + ((a) * 24),//(input.inputs.length < 3) ? 33/2 + (14 * input.inputs.length) : 33/2 + (22 * input.inputs.length)
+                ease: Back.easeInOut,
+                onUpdate: is.data.node.updateLines,
+                onUpdateScope: is.data.node
+            });
+
+        }
+
+        $t.to(n.rect.node, .15, {
+            height: (n.inputs.length < 3) ? 33 + ((n.inputs.length-1) * 10) : 18 + ((n.inputs.length-1) * 24)
+        });
+
+        //clear backbone data
+        i.remove();
+
+        output_connector.connector = null;
+        output_connector.last_n = null;
+        output_connector.last_i = null;
+
+
+    },
 
     handleOptions : function() {
 
@@ -252,15 +287,6 @@ module.exports = Backbone.View.extend({
 
 
     handleDragStart : function() {
-
-        console.log("MOUSE DOWN");
-
-       /* $t.set(this.title.node, {
-            autoAlpha:1
-        });*/
-
-       //this.options.open();
-
 
         event.preventDefault();
         event.stopImmediatePropagation();
@@ -283,17 +309,8 @@ module.exports = Backbone.View.extend({
 
     handleGroupDrag: function(event) {
 
-        for(var a = 0 ; a < this.inputs.length ; a++) {
+        this.updateLines();
 
-            this.inputs[a].update();
-
-        }
-
-        for(a = 0 ; a < this.outputs.length ; a++) {
-
-            this.outputs[a].update();
-
-        }
 
         $t.set(this.tf, {
             x: MASTRI.x($(this.group.node)) + MASTRI.x($(this.title.node)),
@@ -302,6 +319,21 @@ module.exports = Backbone.View.extend({
 
     },
 
+    updateLines : function() {
+
+        for(var a = 0 ; a < this.inputs.length ; a++) {
+
+            this.inputs[a].update();
+
+        }
+
+        for(var a = 0 ; a < this.outputs.length ; a++) {
+
+            this.outputs[a].drawLine();
+
+        }
+
+    },
 
     render: function() {
 
