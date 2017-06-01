@@ -21343,7 +21343,9 @@ var DesignMode = require("./modes/design/DesignMode");
 var PopulateMode = require("./modes/populate/PopulateMode");
 var GenerateMode = require("./modes/generate/GenerateMode");
 var MASTRI = require("./mastri/Mastri");
-var Keys = require("./application/Keys")
+var Keys = require("./application/Keys");
+
+var FieldNode = require("./modes/design/nodes/FieldNode");
 
 Backbone.$ = $;
 
@@ -21374,6 +21376,11 @@ $(function() {
 
     window.main.append(window.s.node);
 
+    //for testing
+    window.f = new FieldNode();
+    console.log(window.f);
+
+    //app
 
     CM.keys = new Keys();
 
@@ -21387,8 +21394,9 @@ $(function() {
 
     CM.navigation = new Navigation();
 
+
 });
-},{"./application/Keys":141,"./mastri/Mastri":142,"./modes/design/DesignMode":144,"./modes/generate/GenerateMode":157,"./modes/populate/PopulateMode":158,"./navigation/Navigation":159,"backbone":160,"jquery":162}],141:[function(require,module,exports){
+},{"./application/Keys":141,"./mastri/Mastri":142,"./modes/design/DesignMode":144,"./modes/design/nodes/FieldNode":153,"./modes/generate/GenerateMode":158,"./modes/populate/PopulateMode":159,"./navigation/Navigation":160,"backbone":161,"jquery":163}],141:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -21436,7 +21444,7 @@ module.exports = Backbone.View.extend({
    }
 
 });
-},{"backbone":160,"jquery":162}],142:[function(require,module,exports){
+},{"backbone":161,"jquery":163}],142:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 
@@ -21538,7 +21546,7 @@ module.exports = Backbone.View.extend({
 });
 
 //module.exports = MASTRI;
-},{"backbone":160,"jquery":162}],143:[function(require,module,exports){
+},{"backbone":161,"jquery":163}],143:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -21810,7 +21818,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":160,"jquery":162}],144:[function(require,module,exports){
+},{"backbone":161,"jquery":163}],144:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -21948,7 +21956,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./Designer":145,"./StructureManager":149,"backbone":160,"jquery":162}],145:[function(require,module,exports){
+},{"./Designer":145,"./StructureManager":149,"backbone":161,"jquery":163}],145:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -22063,7 +22071,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./NodeBase":146,"./NodeManager":147,"./menu/NodeMenu":152,"backbone":160,"jquery":162}],146:[function(require,module,exports){
+},{"./NodeBase":146,"./NodeManager":147,"./menu/NodeMenu":152,"backbone":161,"jquery":163}],146:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -22072,9 +22080,11 @@ var Connector = require("./Connector");
 var Options = require("./Options");
 var cryptoRandomString = require('crypto-random-string');
 
-module.exports = Backbone.View.extend({
+//module.exports = Backbone.View.extend({
 
-    initialize: function(obj) {
+var NodeBaseProto = {
+
+    initialize: function (obj) {
 
         this.data = obj;
 
@@ -22095,7 +22105,7 @@ module.exports = Backbone.View.extend({
         var fill;
         var accent;
 
-        switch(this.data.data.type) {
+        switch (this.data.data.type) {
 
             case "field":
                 fill = "#F25F5C";
@@ -22121,8 +22131,8 @@ module.exports = Backbone.View.extend({
         console.log(this.data.data.option_values, " IS OPEN");
 
         this.options = new Options(this.data.data.entry.options);
-        if(this.data.data.option_values) {
-            if(this.data.data.option_values.isOpen) this.options.open();
+        if (this.data.data.option_values) {
+            if (this.data.data.option_values.isOpen) this.options.open();
         }
 
         $t.set([this.options.top_rect.node, this.options.rect.node, this.options.mask.node], {
@@ -22134,17 +22144,16 @@ module.exports = Backbone.View.extend({
         });
 
 
-
-        this.label_rect = s.rect(0,0,17,17);
+        this.label_rect = s.rect(0, 0, 17, 17);
         this.label_rect.attr({
             fill: accent
         });
         $t.set(this.label_rect.node, {
-           x: 20,
-           y: (33-17)/2
+            x: 20,
+            y: (33 - 17) / 2
         });
 
-        this.label = s.text(0,0,this.data.data.entry.label);
+        this.label = s.text(0, 0, this.data.data.entry.label);
         this.label.attr({
             fill: "white",
             fontSize: 10
@@ -22154,42 +22163,42 @@ module.exports = Backbone.View.extend({
             y: 20
         });
 
-        this.title = s.text(0,15,this.data.data.entry.name);
-        this.title.attr({"contentEditable" : "true"});
+        this.title = s.text(0, 15, this.data.data.entry.name);
+        this.title.attr({"contentEditable": "true"});
         $(this.title.node).css(
             {
-                "pointer-events" : "auto"
+                "pointer-events": "auto"
             }
         );
         $t.set(this.title.node, {
-            x: 20+17+10,
-            y: (33-15)/2 - 2
+            x: 20 + 17 + 10,
+            y: (33 - 15) / 2 - 2
         });
 
         this.tf = MASTRI.add("input", {
-            position:"absolute",
-            backgroundColor:"transparent",
-            border:"0px none transparent",
-            color:"white",
-            outline:"none",
+            position: "absolute",
+            backgroundColor: "transparent",
+            border: "0px none transparent",
+            color: "white",
+            outline: "none",
             width: 60,
-            autoAlpha:0
+            autoAlpha: 0
             //letterSpacing: ".08em"
         });
 
         this.tf.attr({
-            value:this.data.data.entry.name
+            value: this.data.data.entry.name
         });
 
-        this.options_btn = s.rect(0,0,10,10);
+        this.options_btn = s.rect(0, 0, 10, 10);
         this.options_btn.attr({
-            fill:"white"
+            fill: "white"
         });
         $t.set(this.options_btn.node, {
             x: this.width - 35,
-            y: (33-10)/2,
-            pointerEvents:"auto",
-            cursor:"pointer"
+            y: (33 - 10) / 2,
+            pointerEvents: "auto",
+            cursor: "pointer"
         });
         $(this.options_btn.node).on("click", $.proxy(this.handleOptions, this));
         $(this.options.top_rect.node).on("dblclick", $.proxy(this.handleOptions, this));
@@ -22198,76 +22207,76 @@ module.exports = Backbone.View.extend({
 
         $t.set(this.group.node, this.data.position);
         $t.set(this.tf, {
-            x: this.data.position.css.x + 20+17+10,
-            y: this.data.position.css.y + (33-15)/2 - 2
+            x: this.data.position.css.x + 20 + 17 + 10,
+            y: this.data.position.css.y + (33 - 15) / 2 - 2
         });
 
         this.group.add(this.options.group, this.rect, this.label_rect, this.label, this.title, this.options_btn);
 
         // adds node type to structure manager
-        if(this.data.type === "structure") {
+        if (this.data.type === "structure") {
             CM.sm.add(this);
         }
 
         $(this.group.node).on("mousedown", $.proxy(this.mouseDown, this));
 
-       Draggable.create(this.group.node, {
-            type:"x,y",
-            edgeResistance:0.65,
-            trigger:this.options.top_rect.node,
-            onDrag : this.handleGroupDrag,
+        Draggable.create(this.group.node, {
+            type: "x,y",
+            edgeResistance: 0.65,
+            trigger: this.options.top_rect.node,
+            onDrag: this.handleGroupDrag,
             onDragScope: this,
             onDragStart: this.handleDragStart,
-            onDragStartScope : this,
+            onDragStartScope: this,
             onDragEnd: this.handleDragComplete,
-            onDragEndScope : this
+            onDragEndScope: this
             //bounds:s.node,
             //throwProps:true
         });
 
-       this.createIO();
+        this.createIO();
 
 
     },
 
 
-    createIO : function() {
+    createIO: function () {
 
         //todo: will be defined by node type
         this.inputs = [];
         this.outputs = [];
 
         this.inputs.push(new Connector({
-            type:"input",
+            type: "input",
             node: this
         }));
 
-        for(var a = 0 ; a < this.inputs.length ; a++) {
+        for (var a = 0; a < this.inputs.length; a++) {
 
             var i = this.inputs[a];
             $t.set(i.group.node, {
                 x: 0,
-                y:33/2
+                y: 33 / 2
             });
             this.group.add(i.group);
 
         }
 
         $t.set(this.rect.node, {
-           height: 22 + (11 * this.inputs.length)
+            height: 22 + (11 * this.inputs.length)
         });
 
         this.outputs.push(new Connector({
-            type:"output",
+            type: "output",
             node: this
         }));
 
-        for(a = 0 ; a < this.outputs.length ; a++) {
+        for (a = 0; a < this.outputs.length; a++) {
 
             i = this.outputs[a];
             $t.set(i.group.node, {
                 x: this.width,
-                y:33/2
+                y: 33 / 2
             });
             this.group.add(i.group);
 
@@ -22276,10 +22285,10 @@ module.exports = Backbone.View.extend({
     },
 
     //               the output connector  the node  the input connector
-    updateOutput : function(output_connector, input, input_connector) {
+    updateOutput: function (output_connector, input, input_connector) {
 
         var nc = new Connector({
-            type:"input",
+            type: "input",
             node: input
         });
 
@@ -22291,18 +22300,18 @@ module.exports = Backbone.View.extend({
         this.outputs.push(output_connector);
 
         $t.set(nc.group.node, {
-            y:  33/2 + ((input.inputs.length-1) * 24)//(input.inputs.length < 3) ? 33/2 + (14 * input.inputs.length) : 33/2 + (22 * input.inputs.length)
+            y: 33 / 2 + ((input.inputs.length - 1) * 24)//(input.inputs.length < 3) ? 33/2 + (14 * input.inputs.length) : 33/2 + (22 * input.inputs.length)
         });
 
         $t.to(input.rect.node, .15, {
-            height: (input.inputs.length < 3) ? 33 + ((input.inputs.length-1) * 10) : 18 + ((input.inputs.length-1) * 24)
+            height: (input.inputs.length < 3) ? 33 + ((input.inputs.length - 1) * 10) : 18 + ((input.inputs.length - 1) * 24)
         });
 
         input.group.add(nc.group);
 
     },
 
-    removeOutput : function(output_connector) {
+    removeOutput: function (output_connector) {
 
         var i = output_connector.connector;
 
@@ -22310,15 +22319,17 @@ module.exports = Backbone.View.extend({
         i.group.remove();
 
         var n = i.data.node;
-        var f = n.inputs.findIndex(function(x) { return i.cid === x.cid });
+        var f = n.inputs.findIndex(function (x) {
+            return i.cid === x.cid
+        });
 
-        n.inputs.splice(f,1);
+        n.inputs.splice(f, 1);
 
-        for(var a = f ; a < n.inputs.length ; a++) {
+        for (var a = f; a < n.inputs.length; a++) {
 
             var is = n.inputs[a];
             $t.to(is.group.node, .25, {
-                y:  33/2 + ((a) * 24),//(input.inputs.length < 3) ? 33/2 + (14 * input.inputs.length) : 33/2 + (22 * input.inputs.length)
+                y: 33 / 2 + ((a) * 24),//(input.inputs.length < 3) ? 33/2 + (14 * input.inputs.length) : 33/2 + (22 * input.inputs.length)
                 ease: Back.easeInOut,
                 onUpdate: is.data.node.updateLines,
                 onUpdateScope: is.data.node
@@ -22327,7 +22338,7 @@ module.exports = Backbone.View.extend({
         }
 
         $t.to(n.rect.node, .15, {
-            height: (n.inputs.length < 3) ? 33 + ((n.inputs.length-1) * 10) : 18 + ((n.inputs.length-1) * 24)
+            height: (n.inputs.length < 3) ? 33 + ((n.inputs.length - 1) * 10) : 18 + ((n.inputs.length - 1) * 24)
         });
 
         //clear backbone data
@@ -22340,10 +22351,10 @@ module.exports = Backbone.View.extend({
 
     },
 
-    handleOptions : function() {
+    handleOptions: function () {
 
 
-        if(!this.options.isOpen) {
+        if (!this.options.isOpen) {
             this.options.open();
         } else {
             this.options.close();
@@ -22352,28 +22363,28 @@ module.exports = Backbone.View.extend({
     },
 
 
-    handleDragStart : function() {
+    handleDragStart: function () {
 
         event.preventDefault();
         event.stopImmediatePropagation();
 
-       CM.designer.workspace.add(this.group);
+        CM.designer.workspace.add(this.group);
 
         $t.set(this.tf, {
-            autoAlpha:0
+            autoAlpha: 0
         });
     },
 
-    handleDragComplete : function() {
+    handleDragComplete: function () {
 
         CM.designer.node_manager.update(this);
 
         $t.set(this.tf, {
-           // autoAlpha:1
+            // autoAlpha:1
         });
     },
 
-    handleGroupDrag: function(event) {
+    handleGroupDrag: function (event) {
 
         this.updateLines();
 
@@ -22385,15 +22396,15 @@ module.exports = Backbone.View.extend({
 
     },
 
-    updateLines : function() {
+    updateLines: function () {
 
-        for(var a = 0 ; a < this.inputs.length ; a++) {
+        for (var a = 0; a < this.inputs.length; a++) {
 
             this.inputs[a].update();
 
         }
 
-        for(var a = 0 ; a < this.outputs.length ; a++) {
+        for (var a = 0; a < this.outputs.length; a++) {
 
             this.outputs[a].drawLine();
 
@@ -22401,12 +22412,20 @@ module.exports = Backbone.View.extend({
 
     },
 
-    render: function() {
+    render: function () {
 
     }
 
-});
-},{"./Connector":143,"./Options":148,"backbone":160,"crypto-random-string":163,"jquery":162}],147:[function(require,module,exports){
+//});
+
+};
+
+var NodeBase = Backbone.View.extend( NodeBaseProto );
+NodeBase.proto = NodeBaseProto;
+
+module.exports = NodeBase;
+
+},{"./Connector":143,"./Options":148,"backbone":161,"crypto-random-string":165,"jquery":163}],147:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -22587,7 +22606,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":160,"jquery":162}],148:[function(require,module,exports){
+},{"backbone":161,"jquery":163}],148:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -22817,7 +22836,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./Connector":143,"./options/Option":156,"backbone":160,"jquery":162}],149:[function(require,module,exports){
+},{"./Connector":143,"./options/Option":157,"backbone":161,"jquery":163}],149:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -22937,7 +22956,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":160,"jquery":162}],150:[function(require,module,exports){
+},{"backbone":161,"jquery":163}],150:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -22976,7 +22995,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./MenuListItem":151,"backbone":160,"jquery":162}],151:[function(require,module,exports){
+},{"./MenuListItem":151,"backbone":161,"jquery":163}],151:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23018,7 +23037,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":160,"jquery":162}],152:[function(require,module,exports){
+},{"backbone":161,"jquery":163}],152:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23243,7 +23262,74 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./MenuList":150,"backbone":160,"jquery":162}],153:[function(require,module,exports){
+},{"./MenuList":150,"backbone":161,"jquery":163}],153:[function(require,module,exports){
+"use strict";
+
+var $ = require('jquery');
+var Backbone = require('backbone');
+var NodeBase = require("../NodeBase");
+var _ = require("underscore");
+
+
+var ballsProto = {
+
+    suck : function() {
+
+        console.log("SUCK IT");
+
+    }
+
+};
+
+var testProto = {
+
+    whatever : function() {
+
+        console.log("whatever");
+
+    }
+
+};
+
+
+var FieldBaseProto = _.assign(
+
+    //before
+    NodeBase.proto,
+    testProto,
+    //overwrite
+    {
+        initialize : function() {
+
+            console.log("ANYTHING HERE");
+
+            console.log(NodeBase.proto);
+
+            console.log(this.inputs)
+        }
+
+    },
+);
+
+
+var FieldBase = Backbone.View.extend( FieldBaseProto );
+
+module.exports = FieldBase;
+/*
+module.exports = NodeBase.extend({
+
+    initialize: function(obj){
+
+
+    },
+
+    render: function() {
+
+    }
+
+});
+*/
+},{"../NodeBase":146,"backbone":161,"jquery":163,"underscore":164}],154:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23304,7 +23390,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":160,"jquery":162}],154:[function(require,module,exports){
+},{"backbone":161,"jquery":163}],155:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23485,7 +23571,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":160,"jquery":162,"randomcolor":164}],155:[function(require,module,exports){
+},{"backbone":161,"jquery":163,"randomcolor":166}],156:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23533,7 +23619,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":160,"jquery":162}],156:[function(require,module,exports){
+},{"backbone":161,"jquery":163}],157:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23623,7 +23709,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./BooleanOption":153,"./DropdownOption":154,"./NumberOption":155,"backbone":160,"jquery":162,"randomcolor":164}],157:[function(require,module,exports){
+},{"./BooleanOption":154,"./DropdownOption":155,"./NumberOption":156,"backbone":161,"jquery":163,"randomcolor":166}],158:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23656,7 +23742,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":160,"jquery":162}],158:[function(require,module,exports){
+},{"backbone":161,"jquery":163}],159:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23689,7 +23775,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":160,"jquery":162}],159:[function(require,module,exports){
+},{"backbone":161,"jquery":163}],160:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23759,7 +23845,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":160,"jquery":162}],160:[function(require,module,exports){
+},{"backbone":161,"jquery":163}],161:[function(require,module,exports){
 (function (global){
 //     Backbone.js 1.3.3
 
@@ -25683,7 +25769,7 @@ module.exports = Backbone.View.extend({
 });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"jquery":162,"underscore":161}],161:[function(require,module,exports){
+},{"jquery":163,"underscore":162}],162:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -27233,7 +27319,7 @@ module.exports = Backbone.View.extend({
   }
 }.call(this));
 
-},{}],162:[function(require,module,exports){
+},{}],163:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.1.1
  * https://jquery.com/
@@ -37455,7 +37541,9 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],163:[function(require,module,exports){
+},{}],164:[function(require,module,exports){
+arguments[4][162][0].apply(exports,arguments)
+},{"dup":162}],165:[function(require,module,exports){
 'use strict';
 const crypto = require('crypto');
 
@@ -37467,7 +37555,7 @@ module.exports = len => {
 	return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
 };
 
-},{"crypto":54}],164:[function(require,module,exports){
+},{"crypto":54}],166:[function(require,module,exports){
 // randomColor by David Merfield under the CC0 license
 // https://github.com/davidmerfield/randomColor/
 

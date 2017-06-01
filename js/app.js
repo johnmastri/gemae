@@ -7,7 +7,9 @@ var DesignMode = require("./modes/design/DesignMode");
 var PopulateMode = require("./modes/populate/PopulateMode");
 var GenerateMode = require("./modes/generate/GenerateMode");
 var MASTRI = require("./mastri/Mastri");
-var Keys = require("./application/Keys")
+var Keys = require("./application/Keys");
+
+var FieldNode = require("./modes/design/nodes/FieldNode");
 
 Backbone.$ = $;
 
@@ -38,6 +40,11 @@ $(function() {
 
     window.main.append(window.s.node);
 
+    //for testing
+    window.f = new FieldNode();
+    console.log(window.f);
+
+    //app
 
     CM.keys = new Keys();
 
@@ -50,5 +57,6 @@ $(function() {
     CM.mode_group.add(CM.populate_mode.group, CM.generate_mode.group, CM.design_mode.group);
 
     CM.navigation = new Navigation();
+
 
 });
