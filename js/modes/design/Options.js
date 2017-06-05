@@ -2,7 +2,7 @@
 
 var $ = require('jquery');
 var Backbone = require('backbone');
-var Connector = require("./Connector");
+//var Connector = require("./Connector");
 var Option = require("./options/Option");
 
 module.exports = Backbone.View.extend({

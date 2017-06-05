@@ -2,7 +2,8 @@
 
 var $ = require('jquery');
 var Backbone = require('backbone');
-var Connector = require("./Connector");
+var Connector = require("./connectors/Connector");
+var ConnectorArray = require("./connectors/ConnectorArray");
 var Options = require("./Options");
 var cryptoRandomString = require('crypto-random-string');
 
@@ -169,10 +170,29 @@ var NodeBaseProto = {
     createIO: function () {
 
         //todo: will be defined by node type
-        this.inputs = [];
-        this.outputs = [];
+        //this.inputs = [];
+        //this.outputs = [];
 
-        this.inputs.push(new Connector({
+        //TODO: determine if necessarily to keep connectors in their own class.. probably so... but fuck...
+
+        this.inputs = new ConnectorArray({
+            type: "input",
+            node: this
+        });
+        this.group.add(this.inputs.group);
+
+        this.outputs = new ConnectorArray({
+            type: "output",
+            node: this
+        });
+
+        this.group.add(this.outputs.group);
+
+
+        this.inputs.add();
+        this.outputs.add();
+
+        /*this.inputs.push(new Connector({
             type: "input",
             node: this
         }));
@@ -206,14 +226,16 @@ var NodeBaseProto = {
             });
             this.group.add(i.group);
 
-        }
+        }*/
 
     },
 
     //               the output connector  the node  the input connector
     updateOutput: function (output_connector, input, input_connector) {
 
-        var nc = new Connector({
+
+        //this.inputs.add(output_connector, input, input_connector);
+    /*var nc = new Connector({
             type: "input",
             node: input
         });
@@ -233,7 +255,8 @@ var NodeBaseProto = {
             height: (input.inputs.length < 3) ? 33 + ((input.inputs.length - 1) * 10) : 18 + ((input.inputs.length - 1) * 24)
         });
 
-        input.group.add(nc.group);
+        input.group.add(nc.group);*/
+
 
     },
 

@@ -2,12 +2,15 @@
 
 var $ = require('jquery');
 var Backbone = require('backbone');
+var _ = require("underscore");
 
 module.exports = Backbone.View.extend({
 
     initialize: function(obj){
 
         this.data = obj || null;
+
+        _.extend(this, Backbone.Events);
 
         this.group = s.group();
 
@@ -95,13 +98,13 @@ module.exports = Backbone.View.extend({
 
             var n = CM.designer.nodes[a];
 
-            var l = (this.connector != null) ? n.inputs.length - 1 : n.inputs.length;
+            var l = (this.connector != null) ? n.inputs.connectors.length - 1 : n.inputs.connectors.length;
 
             if(this.connector && n === this.connector.data.node && this.disabled_connectors.length === 0) {
 
                 //if( this.disabled_connectors.findIndex(function(x) {  }) == -1
                 //if(this.disabled_connectors.length === 0) {
-                    var hi = n.inputs[n.inputs.length - 1];
+                    var hi = n.inputs.connectors[n.inputs.connectors.length - 1];
                     this.disableConnectors(hi);
                     this.disabled_connectors.push(hi)
                //}
@@ -110,7 +113,7 @@ module.exports = Backbone.View.extend({
 
             for(var b = 0 ; b < l ; b++) {
                 
-                var i = n.inputs[b];
+                var i = n.inputs.connectors[b];
 
                 if (Draggable.hitTest(this.hit_circle.node, i.connector_point.node))  {//} && n != this.node) {
 
@@ -137,6 +140,8 @@ module.exports = Backbone.View.extend({
     },
 
     handleDragEnd : function(event) {
+
+        //this.trigger("whatever", this, this.last_n, this.last_i)
 
       if(this.last_n) {
 
@@ -168,7 +173,14 @@ module.exports = Backbone.View.extend({
               return;
           }
 
-          if(this.cid != this.last_i.cid) this.data.node.updateOutput(this, this.last_n, this.last_i);
+          if(this.cid != this.last_i.cid) {
+
+              console.log(this.last_n, "LAS NIGHT" )
+
+              this.trigger("whatever", this, this.last_n, this.last_i)
+              //this.data.node.updateOutput(this, this.last_n, this.last_i);
+
+          }
 
           this.drawLine();
 
