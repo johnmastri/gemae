@@ -21396,7 +21396,7 @@ $(function() {
 
 
 });
-},{"./application/Keys":141,"./mastri/Mastri":142,"./modes/design/DesignMode":143,"./modes/design/nodes/FieldNode":154,"./modes/generate/GenerateMode":159,"./modes/populate/PopulateMode":160,"./navigation/Navigation":161,"backbone":162,"jquery":164}],141:[function(require,module,exports){
+},{"./application/Keys":141,"./mastri/Mastri":142,"./modes/design/DesignMode":143,"./modes/design/nodes/FieldNode":155,"./modes/generate/GenerateMode":160,"./modes/populate/PopulateMode":161,"./navigation/Navigation":162,"backbone":163,"jquery":165}],141:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -21444,7 +21444,7 @@ module.exports = Backbone.View.extend({
    }
 
 });
-},{"backbone":162,"jquery":164}],142:[function(require,module,exports){
+},{"backbone":163,"jquery":165}],142:[function(require,module,exports){
 var $ = require('jquery');
 var Backbone = require('backbone');
 
@@ -21546,13 +21546,14 @@ module.exports = Backbone.View.extend({
 });
 
 //module.exports = MASTRI;
-},{"backbone":162,"jquery":164}],143:[function(require,module,exports){
+},{"backbone":163,"jquery":165}],143:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
 var Backbone = require('backbone');
 var Designer = require("./Designer");
 var StructureManager = require("./StructureManager");
+var StructureOutput = require("./StructureOutput");
 
 
 module.exports = Backbone.View.extend({
@@ -21571,22 +21572,18 @@ module.exports = Backbone.View.extend({
 
         CM.sm = new StructureManager(this);
         CM.designer = new Designer(this);
-
-        Draggable.create(this.designer_holder.node, {
-            type:"x,y",
-            edgeResistance:0.65,
-            trigger: CM.designer.rect.node,
-            onDrag : this.handleGroupDrag,
-            onDragScope: this,
-/*             onDragStart: this.handleDragStart,
-             onDragStartScope : this,
-             onDragEnd: this.handleDragComplete,
-             onDragEndScope : this*/
-            //bounds:s.node,
-            //throwProps:true
-        });
+        //this.structure_output = new StructureOutput();
+        CM.so = new StructureOutput(this);//this.structure_output;
 
 
+        /* Draggable.create(this.designer_holder.node, {
+             type:"x,y",
+             edgeResistance:0.65,
+             trigger: CM.designer.rect.node,
+             onDrag : this.handleGroupDrag,
+             onDragScope: this
+         });
+ */
         //temporary for filling out forms
 
         this.holder = MASTRI.add("div", {
@@ -21596,7 +21593,6 @@ module.exports = Backbone.View.extend({
         });
 
         //$b.append(this.holder);
-
 
         var field_names = [
             "name",
@@ -21684,7 +21680,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./Designer":144,"./StructureManager":148,"backbone":162,"jquery":164}],144:[function(require,module,exports){
+},{"./Designer":144,"./StructureManager":148,"./StructureOutput":149,"backbone":163,"jquery":165}],144:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -21799,7 +21795,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./NodeBase":145,"./NodeManager":146,"./menu/NodeMenu":153,"backbone":162,"jquery":164}],145:[function(require,module,exports){
+},{"./NodeBase":145,"./NodeManager":146,"./menu/NodeMenu":154,"backbone":163,"jquery":165}],145:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -21822,7 +21818,6 @@ var NodeBaseProto = {
         this.width = 200;
 
         this.local_id = obj.local_id || cryptoRandomString(10);
-        console.log(this.local_id, " ID!");
 
         this.output_connections = [];
         this.input_connections = [];
@@ -21856,8 +21851,6 @@ var NodeBaseProto = {
         this.rect.attr({
             fill: fill
         });
-
-        console.log(this.data.data.option_values, " IS OPEN");
 
         this.options = new Options(this.data.data.entry.options);
         if (this.data.data.option_values) {
@@ -21942,9 +21935,13 @@ var NodeBaseProto = {
 
         this.group.add(this.options.group, this.rect, this.label_rect, this.label, this.title, this.options_btn);
 
+        console.log(this.data.data.type, ' TYOPE")');
+
         // adds node type to structure manager
-        if (this.data.type === "structure") {
+        if (this.data.data.type === "structure") {
             CM.sm.add(this);
+
+
         }
 
         $(this.group.node).on("mousedown", $.proxy(this.mouseDown, this));
@@ -21970,6 +21967,8 @@ var NodeBaseProto = {
 
 
     createIO: function () {
+
+        console.log("CREATE IO");
 
         //todo: will be defined by node type
         //this.inputs = [];
@@ -22033,31 +22032,34 @@ var NodeBaseProto = {
     },
 
     //               the output connector  the node  the input connector
-    updateOutput: function (output_connector, input, input_connector) {
+    updateStructure: function () {
 
+        console.log("UPDATE STRUCTURE");
 
-        //this.inputs.add(output_connector, input, input_connector);
-    /*var nc = new Connector({
-            type: "input",
-            node: input
-        });
+        var obj = {};
+        obj.name = "Structure";
+        obj.type = "structure";
+        obj.content = {};
 
-        input.inputs.push(nc);
+        for(var a = 0 ; a < this.inputs.connectors.length ; a++) {
 
-        output_connector.connector = input_connector;
-        input_connector.connector = output_connector;
+            var c = this.inputs.connectors[a];
+            var cc = c.connector || null;
+            var cp = (cc) ? cc.parentNode : null;
+            console.log(cp, "INPUT CONNECTOR");
+            if(cp) {
+                console.log(cp.data.data.type, " TYPE");
+                //obj.type = cp.data.data.type;
+                obj.content[cp.data.data.entry.name] = {
+                    type : cp.data.data.type
+                }
+            }
 
-        this.outputs.push(output_connector);
+        }
 
-        $t.set(nc.group.node, {
-            y: 33 / 2 + ((input.inputs.length - 1) * 24)//(input.inputs.length < 3) ? 33/2 + (14 * input.inputs.length) : 33/2 + (22 * input.inputs.length)
-        });
+        console.log("data type ", obj);
 
-        $t.to(input.rect.node, .15, {
-            height: (input.inputs.length < 3) ? 33 + ((input.inputs.length - 1) * 10) : 18 + ((input.inputs.length - 1) * 24)
-        });
-
-        input.group.add(nc.group);*/
+        CM.so.update(obj);
 
 
     },
@@ -22139,7 +22141,6 @@ var NodeBaseProto = {
 
         this.updateLines();
 
-
         $t.set(this.tf, {
             x: MASTRI.x($(this.group.node)) + MASTRI.x($(this.title.node)),
             y: MASTRI.y($(this.group.node)) + MASTRI.y($(this.title.node))
@@ -22149,7 +22150,10 @@ var NodeBaseProto = {
 
     updateLines: function () {
 
-        for (var a = 0; a < this.inputs.length; a++) {
+        this.inputs.updateAllConnections();
+        this.outputs.updateAllConnections();
+
+        /*for (var a = 0; a < this.inputs.length; a++) {
 
             this.inputs[a].update();
 
@@ -22159,7 +22163,9 @@ var NodeBaseProto = {
 
             this.outputs[a].drawLine();
 
-        }
+        }*/
+
+
 
     },
 
@@ -22176,7 +22182,7 @@ NodeBase.proto = NodeBaseProto;
 
 module.exports = NodeBase;
 
-},{"./Options":147,"./connectors/Connector":149,"./connectors/ConnectorArray":150,"backbone":162,"crypto-random-string":166,"jquery":164}],146:[function(require,module,exports){
+},{"./Options":147,"./connectors/Connector":150,"./connectors/ConnectorArray":151,"backbone":163,"crypto-random-string":167,"jquery":165}],146:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -22357,7 +22363,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":162,"jquery":164}],147:[function(require,module,exports){
+},{"backbone":163,"jquery":165}],147:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -22587,7 +22593,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./options/Option":158,"backbone":162,"jquery":164}],148:[function(require,module,exports){
+},{"./options/Option":159,"backbone":163,"jquery":165}],148:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -22612,8 +22618,6 @@ module.exports = Backbone.View.extend({
             autoAlpha:0
         })
 
-        //console.log("SO FUCK");
-        
     },
 
     add : function(n) {
@@ -22621,13 +22625,14 @@ module.exports = Backbone.View.extend({
         var o = {};
         o.node = n;
         o.group = this.create();
+
         this.structures.push(o);
+
     },
 
     create : function() {
 
         var g = s.group();
-
 
         var c = s.circle(0,0,10).attr({
             fill:"#000"
@@ -22707,7 +22712,126 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":162,"jquery":164}],149:[function(require,module,exports){
+},{"backbone":163,"jquery":165}],149:[function(require,module,exports){
+"use strict";
+
+var $ = require('jquery');
+var Backbone = require('backbone');
+
+module.exports = Backbone.View.extend({
+
+    initialize: function(obj) {
+
+        this.$el = MASTRI.add("div", {
+            width: "25%",
+            height: "100%",
+            backgroundColor: "white",
+            color:"black",
+            right:"0%",
+            fontFamily:"Courier",
+            fontWeight:"Bold",
+            fontSize: 11,
+            padding:"10px"
+        });
+
+/*        this.$el.html("{code : <br>" +
+            "<blockquote>sample: [{" +
+            "<blockquote>whatever, whatever, whatever</blockquote>" +
+            "]\n</blockquote>" +
+            "<blockquote>sample: []\n</blockquote>" +
+            "<br>" +
+            "}");*/
+
+        this.$el.appendTo($b);
+
+        /*
+        *
+        * var style = $('<style>body { background: green; }</style>')
+         $('html > head').append(style);*/
+
+        this.highlights = [
+            {name: "string", props: { "color": "green" }},
+            {name: "number", props: { color: "darkorange" }},
+            {name: "boolean", props: { color: "blue" }},
+            {name: "null", props: { color: "magenta" }},
+            {name: "key", props: { color: "red" }}
+         ];
+
+        /*
+         var style = $('<style>body { background: green; }</style>')
+         $('html > head').append(style);
+
+         $("<style type='text/css'> .redbold{ color:#f00; font-weight:bold;} </style>").appendTo("head");
+         $("<div/>").addClass("redbold").text("SOME NEW TEXT").appendTo("body");
+
+
+         */
+
+        //TODO: can be replaced with regex
+
+        var s = "<style type='text/css'>";
+
+        for(var a = 0 ; a < this.highlights.length ; a++) {
+
+            var h = this.highlights[a];
+            var json = "";
+            for(var b in h.props) {
+                json += "." + h.name + "{ " + b ;
+                json += ":";
+                json += h.props[b] + "}\n"
+            }
+            s += json;
+
+        }
+
+        s += "</style>";
+        $(s).appendTo("head");
+
+        //this.output();
+
+    },
+
+    update : function(obj) {
+
+        this.output(obj);
+
+    },
+
+    output : function(obj) {
+        //var obj = {whatever: "ASS", bitch: ["fuck", "you", true], shit: { seriously : "this is lame"}};
+        this.$el.html("<pre>" + this.syntaxHighlight( obj ) +"</pre>");
+    },
+
+    syntaxHighlight : function(obj) {
+
+        obj = JSON.stringify(obj, undefined, 4);
+
+        obj = obj.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+        return obj.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+            var cls = 'number';
+            if (/^"/.test(match)) {
+                if (/:$/.test(match)) {
+                    cls = 'key';
+                } else {
+                    cls = 'string';
+                }
+            } else if (/true|false/.test(match)) {
+                cls = 'boolean';
+            } else if (/null/.test(match)) {
+                cls = 'null';
+            }
+            return '<span class="' + cls + '">' + match + '</span>';
+        });
+
+    },
+
+    render: function() {
+
+    }
+
+});
+},{"backbone":163,"jquery":165}],150:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -22719,6 +22843,8 @@ module.exports = Backbone.View.extend({
     initialize: function(obj){
 
         this.data = obj || null;
+        this.node = this.data.node;
+        this.parentNode = this.data.parentNode;
 
         _.extend(this, Backbone.Events);
 
@@ -22728,7 +22854,8 @@ module.exports = Backbone.View.extend({
 
         this.input = null;
         this.output = null;
-        this.input_connectors = [];
+        //this.input_connectors = [];
+        this.connector = null;
 
         this.hit_circle = s.circle(0,0,(this.data.type === "output") ? 5 : 0).attr("fill", "#ff0000");
 
@@ -22866,6 +22993,7 @@ module.exports = Backbone.View.extend({
 
           //TODO: add mini menu for replace, insert
           //trying to drag over a node that is already taken
+
           if(this.last_i.connector) {
 
               $t.to(this.hit_circle.node, .2, {
@@ -22883,9 +23011,7 @@ module.exports = Backbone.View.extend({
               return;
           }
 
-          if(this.cid != this.last_i.cid) {
-
-              console.log(this.last_n, "LAS NIGHT" )
+          if(this.cid !== this.last_i.cid) {
 
               this.trigger("whatever", this, this.last_n, this.last_i)
               //this.data.node.updateOutput(this, this.last_n, this.last_i);
@@ -22904,6 +23030,7 @@ module.exports = Backbone.View.extend({
                 ease: Circ.easeInOut
             });
 
+            //TODO: remove Output?
             if(this.connector) this.data.node.removeOutput(this);
 
           this.enableConnectors();
@@ -22926,9 +23053,41 @@ module.exports = Backbone.View.extend({
 
         if(this.last_n) {
 
-            //TODO: update with .parentUntil
-            var x = this.last_n.group.node._gsTransform.x - this.data.node.group.node._gsTransform.x - this.group.node._gsTransform.x + this.last_i.group.node._gsTransform.x;
-            var y = this.last_n.group.node._gsTransform.y - this.data.node.group.node._gsTransform.y - this.group.node._gsTransform.y + this.last_i.group.node._gsTransform.y;
+            var n = $(this.last_i.group.node).closest(".node");
+
+            var tn = $(this.group.node).closest(".node");
+            var pu = $(this.group.node).parentsUntil(".node");
+
+            var x = 0;
+            var y = 0;
+
+            var tx = 0;
+            var ty = 0;
+
+             for(var a = 0 ; a < pu.length ; a++) {
+
+                 var p = pu[a];
+                 if(p._gsTransform) {
+                    tx += p._gsTransform.x;
+                    ty += p._gsTransform.y;
+                 }
+
+                 console.log(tx, "X");
+                 console.log(ty, "Y");
+
+             }
+
+
+            console.log("y after : " , y);
+
+             x = n[0]._gsTransform.x - tn[0]._gsTransform.x - tx;
+             y = n[0]._gsTransform.y - tn[0]._gsTransform.y + this.last_i.group.node._gsTransform.y - 16;
+
+
+
+            //TODO: update with .parentsUntil
+           /* var x = this.last_n.group.node._gsTransform.x - this.data.node.group.node._gsTransform.x - this.group.node._gsTransform.x + this.last_i.group.node._gsTransform.x;
+            var y = this.last_n.group.node._gsTransform.y - this.data.node.group.node._gsTransform.y - this.group.node._gsTransform.y + this.last_i.group.node._gsTransform.y;*/
 
             $t.set(this.hit_circle.node, {
                 x: x,
@@ -22946,8 +23105,6 @@ module.exports = Backbone.View.extend({
 
     disableConnectors : function(hi) {
 
-        console.log(hi, " H<<<");
-
         hi.connector_point.attr({
             fill:"#333333"
         });
@@ -22956,8 +23113,6 @@ module.exports = Backbone.View.extend({
     },
 
     enableConnectors : function() {
-
-        console.log(hi, " H<<<");
 
         for(var a in this.disabled_connectors) {
             var hi = this.disabled_connectors[a];
@@ -22968,21 +23123,23 @@ module.exports = Backbone.View.extend({
 
     },
 
-    update : function() {
+    updateAllConnections : function() {
 
         this.drawLine();
 
-        var i = this.data.node.inputs;
+        if(this.connector) this.connector.drawLine();
 
-        for(var a = 0 ; a < i.length ; a++) {
+        //var i = this.data.node.inputs.connectors;
+        //console.log(i);
+        /*for(var a = 0 ; a < i.length ; a++) {
 
-            var c = this.data.node.inputs[a];
+            var c = this.data.node.inputs.connectors[a];
 
             if(c.connector) {
                 c.connector.drawLine();
             }
 
-        }
+        }*/
 
     },
 
@@ -22991,7 +23148,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":162,"jquery":164,"underscore":165}],150:[function(require,module,exports){
+},{"backbone":163,"jquery":165,"underscore":166}],151:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23020,15 +23177,13 @@ module.exports = Backbone.View.extend({
 
         _.extend(this, Backbone.Events);
 
-        console.log(this.trigger, " ARE YOU THERE")
-
-
     },
 
     add : function() {
 
         var nc = new Connector({
             type: this.type,
+            parentNode: this.node,
             node: this
         });
 
@@ -23036,12 +23191,8 @@ module.exports = Backbone.View.extend({
 
         this.connectors.push(nc);
 
-   /*     $t.set(nc.group.node, {
-            x: 0,
-            y: 33 / 2
-        });
-*/
         $t.set(nc.group.node, {
+            x:0,
             y: 33 / 2 + ((this.connectors.length - 1) * 24)//(input.inputs.length < 3) ? 33/2 + (14 * input.inputs.length) : 33/2 + (22 * input.inputs.length)
         });
 
@@ -23051,35 +23202,34 @@ module.exports = Backbone.View.extend({
 
         this.group.add(nc.group);
 
+        console.log("CALLED 3x");
+
+        this.node.updateStructure();
+
         return nc;
 
     },
 
     update : function(output_connector, input, input_connector) {
 
-        console.log(input, " THIS");
-
-        input.inputs.add();
-
-
-        /*
+        //create one-to-one relationship of connectors;
         output_connector.connector = input_connector;
         input_connector.connector = output_connector;
 
-        $t.set(nc.group.node, {
-            y: 33 / 2 + ((input.inputs.length - 1) * 24)//(input.inputs.length < 3) ? 33/2 + (14 * input.inputs.length) : 33/2 + (22 * input.inputs.length)
-        });
-
-        $t.to(input.rect.node, .15, {
-            height: (input.inputs.length < 3) ? 33 + ((input.inputs.length - 1) * 10) : 18 + ((input.inputs.length - 1) * 24)
-        });
-
-        input.group.add(nc.group);
-
-        this.length = this.connectors.length;*/
-
+        //creates a new input
+        input.inputs.add();
 
     },
+
+    updateAllConnections : function() {
+
+        for (var a = 0; a < this.connectors.length; a++) {
+
+            this.connectors[a].updateAllConnections();
+
+        }
+    },
+
 
     remove : function() {
 
@@ -23091,7 +23241,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./Connector":149,"backbone":162,"jquery":164,"underscore":165}],151:[function(require,module,exports){
+},{"./Connector":150,"backbone":163,"jquery":165,"underscore":166}],152:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23130,7 +23280,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./MenuListItem":152,"backbone":162,"jquery":164}],152:[function(require,module,exports){
+},{"./MenuListItem":153,"backbone":163,"jquery":165}],153:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23172,7 +23322,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":162,"jquery":164}],153:[function(require,module,exports){
+},{"backbone":163,"jquery":165}],154:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23397,7 +23547,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./MenuList":151,"backbone":162,"jquery":164}],154:[function(require,module,exports){
+},{"./MenuList":152,"backbone":163,"jquery":165}],155:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23464,7 +23614,7 @@ module.exports = NodeBase.extend({
 
 });
 */
-},{"../NodeBase":145,"backbone":162,"jquery":164,"underscore":165}],155:[function(require,module,exports){
+},{"../NodeBase":145,"backbone":163,"jquery":165,"underscore":166}],156:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23525,7 +23675,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":162,"jquery":164}],156:[function(require,module,exports){
+},{"backbone":163,"jquery":165}],157:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23706,7 +23856,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":162,"jquery":164,"randomcolor":167}],157:[function(require,module,exports){
+},{"backbone":163,"jquery":165,"randomcolor":168}],158:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23754,7 +23904,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":162,"jquery":164}],158:[function(require,module,exports){
+},{"backbone":163,"jquery":165}],159:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23844,7 +23994,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"./BooleanOption":155,"./DropdownOption":156,"./NumberOption":157,"backbone":162,"jquery":164,"randomcolor":167}],159:[function(require,module,exports){
+},{"./BooleanOption":156,"./DropdownOption":157,"./NumberOption":158,"backbone":163,"jquery":165,"randomcolor":168}],160:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23877,7 +24027,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":162,"jquery":164}],160:[function(require,module,exports){
+},{"backbone":163,"jquery":165}],161:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23910,7 +24060,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":162,"jquery":164}],161:[function(require,module,exports){
+},{"backbone":163,"jquery":165}],162:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -23980,7 +24130,7 @@ module.exports = Backbone.View.extend({
     }
 
 });
-},{"backbone":162,"jquery":164}],162:[function(require,module,exports){
+},{"backbone":163,"jquery":165}],163:[function(require,module,exports){
 (function (global){
 //     Backbone.js 1.3.3
 
@@ -25904,7 +26054,7 @@ module.exports = Backbone.View.extend({
 });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"jquery":164,"underscore":163}],163:[function(require,module,exports){
+},{"jquery":165,"underscore":164}],164:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -27454,7 +27604,7 @@ module.exports = Backbone.View.extend({
   }
 }.call(this));
 
-},{}],164:[function(require,module,exports){
+},{}],165:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.1.1
  * https://jquery.com/
@@ -37676,9 +37826,9 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],165:[function(require,module,exports){
-arguments[4][163][0].apply(exports,arguments)
-},{"dup":163}],166:[function(require,module,exports){
+},{}],166:[function(require,module,exports){
+arguments[4][164][0].apply(exports,arguments)
+},{"dup":164}],167:[function(require,module,exports){
 'use strict';
 const crypto = require('crypto');
 
@@ -37690,7 +37840,7 @@ module.exports = len => {
 	return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
 };
 
-},{"crypto":54}],167:[function(require,module,exports){
+},{"crypto":54}],168:[function(require,module,exports){
 // randomColor by David Merfield under the CC0 license
 // https://github.com/davidmerfield/randomColor/
 

@@ -26,15 +26,13 @@ module.exports = Backbone.View.extend({
 
         _.extend(this, Backbone.Events);
 
-        console.log(this.trigger, " ARE YOU THERE")
-
-
     },
 
     add : function() {
 
         var nc = new Connector({
             type: this.type,
+            parentNode: this.node,
             node: this
         });
 
@@ -42,12 +40,8 @@ module.exports = Backbone.View.extend({
 
         this.connectors.push(nc);
 
-   /*     $t.set(nc.group.node, {
-            x: 0,
-            y: 33 / 2
-        });
-*/
         $t.set(nc.group.node, {
+            x:0,
             y: 33 / 2 + ((this.connectors.length - 1) * 24)//(input.inputs.length < 3) ? 33/2 + (14 * input.inputs.length) : 33/2 + (22 * input.inputs.length)
         });
 
@@ -57,35 +51,34 @@ module.exports = Backbone.View.extend({
 
         this.group.add(nc.group);
 
+        console.log("CALLED 3x");
+
+        this.node.updateStructure();
+
         return nc;
 
     },
 
     update : function(output_connector, input, input_connector) {
 
-        console.log(input, " THIS");
-
-        input.inputs.add();
-
-
-        /*
+        //create one-to-one relationship of connectors;
         output_connector.connector = input_connector;
         input_connector.connector = output_connector;
 
-        $t.set(nc.group.node, {
-            y: 33 / 2 + ((input.inputs.length - 1) * 24)//(input.inputs.length < 3) ? 33/2 + (14 * input.inputs.length) : 33/2 + (22 * input.inputs.length)
-        });
-
-        $t.to(input.rect.node, .15, {
-            height: (input.inputs.length < 3) ? 33 + ((input.inputs.length - 1) * 10) : 18 + ((input.inputs.length - 1) * 24)
-        });
-
-        input.group.add(nc.group);
-
-        this.length = this.connectors.length;*/
-
+        //creates a new input
+        input.inputs.add();
 
     },
+
+    updateAllConnections : function() {
+
+        for (var a = 0; a < this.connectors.length; a++) {
+
+            this.connectors[a].updateAllConnections();
+
+        }
+    },
+
 
     remove : function() {
 

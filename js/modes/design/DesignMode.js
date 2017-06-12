@@ -4,6 +4,7 @@ var $ = require('jquery');
 var Backbone = require('backbone');
 var Designer = require("./Designer");
 var StructureManager = require("./StructureManager");
+var StructureOutput = require("./StructureOutput");
 
 
 module.exports = Backbone.View.extend({
@@ -22,22 +23,18 @@ module.exports = Backbone.View.extend({
 
         CM.sm = new StructureManager(this);
         CM.designer = new Designer(this);
-
-        Draggable.create(this.designer_holder.node, {
-            type:"x,y",
-            edgeResistance:0.65,
-            trigger: CM.designer.rect.node,
-            onDrag : this.handleGroupDrag,
-            onDragScope: this,
-/*             onDragStart: this.handleDragStart,
-             onDragStartScope : this,
-             onDragEnd: this.handleDragComplete,
-             onDragEndScope : this*/
-            //bounds:s.node,
-            //throwProps:true
-        });
+        //this.structure_output = new StructureOutput();
+        CM.so = new StructureOutput(this);//this.structure_output;
 
 
+        /* Draggable.create(this.designer_holder.node, {
+             type:"x,y",
+             edgeResistance:0.65,
+             trigger: CM.designer.rect.node,
+             onDrag : this.handleGroupDrag,
+             onDragScope: this
+         });
+ */
         //temporary for filling out forms
 
         this.holder = MASTRI.add("div", {
@@ -47,7 +44,6 @@ module.exports = Backbone.View.extend({
         });
 
         //$b.append(this.holder);
-
 
         var field_names = [
             "name",

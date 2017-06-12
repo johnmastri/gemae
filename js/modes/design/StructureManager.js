@@ -22,8 +22,6 @@ module.exports = Backbone.View.extend({
             autoAlpha:0
         })
 
-        //console.log("SO FUCK");
-        
     },
 
     add : function(n) {
@@ -31,13 +29,14 @@ module.exports = Backbone.View.extend({
         var o = {};
         o.node = n;
         o.group = this.create();
+
         this.structures.push(o);
+
     },
 
     create : function() {
 
         var g = s.group();
-
 
         var c = s.circle(0,0,10).attr({
             fill:"#000"

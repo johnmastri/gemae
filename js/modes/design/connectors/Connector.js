@@ -9,6 +9,8 @@ module.exports = Backbone.View.extend({
     initialize: function(obj){
 
         this.data = obj || null;
+        this.node = this.data.node;
+        this.parentNode = this.data.parentNode;
 
         _.extend(this, Backbone.Events);
 
@@ -18,7 +20,8 @@ module.exports = Backbone.View.extend({
 
         this.input = null;
         this.output = null;
-        this.input_connectors = [];
+        //this.input_connectors = [];
+        this.connector = null;
 
         this.hit_circle = s.circle(0,0,(this.data.type === "output") ? 5 : 0).attr("fill", "#ff0000");
 
@@ -156,6 +159,7 @@ module.exports = Backbone.View.extend({
 
           //TODO: add mini menu for replace, insert
           //trying to drag over a node that is already taken
+
           if(this.last_i.connector) {
 
               $t.to(this.hit_circle.node, .2, {
@@ -173,9 +177,7 @@ module.exports = Backbone.View.extend({
               return;
           }
 
-          if(this.cid != this.last_i.cid) {
-
-              console.log(this.last_n, "LAS NIGHT" )
+          if(this.cid !== this.last_i.cid) {
 
               this.trigger("whatever", this, this.last_n, this.last_i)
               //this.data.node.updateOutput(this, this.last_n, this.last_i);
@@ -194,6 +196,7 @@ module.exports = Backbone.View.extend({
                 ease: Circ.easeInOut
             });
 
+            //TODO: remove Output?
             if(this.connector) this.data.node.removeOutput(this);
 
           this.enableConnectors();
@@ -216,9 +219,41 @@ module.exports = Backbone.View.extend({
 
         if(this.last_n) {
 
-            //TODO: update with .parentUntil
-            var x = this.last_n.group.node._gsTransform.x - this.data.node.group.node._gsTransform.x - this.group.node._gsTransform.x + this.last_i.group.node._gsTransform.x;
-            var y = this.last_n.group.node._gsTransform.y - this.data.node.group.node._gsTransform.y - this.group.node._gsTransform.y + this.last_i.group.node._gsTransform.y;
+            var n = $(this.last_i.group.node).closest(".node");
+
+            var tn = $(this.group.node).closest(".node");
+            var pu = $(this.group.node).parentsUntil(".node");
+
+            var x = 0;
+            var y = 0;
+
+            var tx = 0;
+            var ty = 0;
+
+             for(var a = 0 ; a < pu.length ; a++) {
+
+                 var p = pu[a];
+                 if(p._gsTransform) {
+                    tx += p._gsTransform.x;
+                    ty += p._gsTransform.y;
+                 }
+
+                 console.log(tx, "X");
+                 console.log(ty, "Y");
+
+             }
+
+
+            console.log("y after : " , y);
+
+             x = n[0]._gsTransform.x - tn[0]._gsTransform.x - tx;
+             y = n[0]._gsTransform.y - tn[0]._gsTransform.y + this.last_i.group.node._gsTransform.y - 16;
+
+
+
+            //TODO: update with .parentsUntil
+           /* var x = this.last_n.group.node._gsTransform.x - this.data.node.group.node._gsTransform.x - this.group.node._gsTransform.x + this.last_i.group.node._gsTransform.x;
+            var y = this.last_n.group.node._gsTransform.y - this.data.node.group.node._gsTransform.y - this.group.node._gsTransform.y + this.last_i.group.node._gsTransform.y;*/
 
             $t.set(this.hit_circle.node, {
                 x: x,
@@ -236,8 +271,6 @@ module.exports = Backbone.View.extend({
 
     disableConnectors : function(hi) {
 
-        console.log(hi, " H<<<");
-
         hi.connector_point.attr({
             fill:"#333333"
         });
@@ -246,8 +279,6 @@ module.exports = Backbone.View.extend({
     },
 
     enableConnectors : function() {
-
-        console.log(hi, " H<<<");
 
         for(var a in this.disabled_connectors) {
             var hi = this.disabled_connectors[a];
@@ -258,21 +289,23 @@ module.exports = Backbone.View.extend({
 
     },
 
-    update : function() {
+    updateAllConnections : function() {
 
         this.drawLine();
 
-        var i = this.data.node.inputs;
+        if(this.connector) this.connector.drawLine();
 
-        for(var a = 0 ; a < i.length ; a++) {
+        //var i = this.data.node.inputs.connectors;
+        //console.log(i);
+        /*for(var a = 0 ; a < i.length ; a++) {
 
-            var c = this.data.node.inputs[a];
+            var c = this.data.node.inputs.connectors[a];
 
             if(c.connector) {
                 c.connector.drawLine();
             }
 
-        }
+        }*/
 
     },
 

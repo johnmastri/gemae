@@ -20,7 +20,6 @@ var NodeBaseProto = {
         this.width = 200;
 
         this.local_id = obj.local_id || cryptoRandomString(10);
-        console.log(this.local_id, " ID!");
 
         this.output_connections = [];
         this.input_connections = [];
@@ -54,8 +53,6 @@ var NodeBaseProto = {
         this.rect.attr({
             fill: fill
         });
-
-        console.log(this.data.data.option_values, " IS OPEN");
 
         this.options = new Options(this.data.data.entry.options);
         if (this.data.data.option_values) {
@@ -140,9 +137,13 @@ var NodeBaseProto = {
 
         this.group.add(this.options.group, this.rect, this.label_rect, this.label, this.title, this.options_btn);
 
+        console.log(this.data.data.type, ' TYOPE")');
+
         // adds node type to structure manager
-        if (this.data.type === "structure") {
+        if (this.data.data.type === "structure") {
             CM.sm.add(this);
+
+
         }
 
         $(this.group.node).on("mousedown", $.proxy(this.mouseDown, this));
@@ -168,6 +169,8 @@ var NodeBaseProto = {
 
 
     createIO: function () {
+
+        console.log("CREATE IO");
 
         //todo: will be defined by node type
         //this.inputs = [];
@@ -231,31 +234,34 @@ var NodeBaseProto = {
     },
 
     //               the output connector  the node  the input connector
-    updateOutput: function (output_connector, input, input_connector) {
+    updateStructure: function () {
 
+        console.log("UPDATE STRUCTURE");
 
-        //this.inputs.add(output_connector, input, input_connector);
-    /*var nc = new Connector({
-            type: "input",
-            node: input
-        });
+        var obj = {};
+        obj.name = "Structure";
+        obj.type = "structure";
+        obj.content = {};
 
-        input.inputs.push(nc);
+        for(var a = 0 ; a < this.inputs.connectors.length ; a++) {
 
-        output_connector.connector = input_connector;
-        input_connector.connector = output_connector;
+            var c = this.inputs.connectors[a];
+            var cc = c.connector || null;
+            var cp = (cc) ? cc.parentNode : null;
+            console.log(cp, "INPUT CONNECTOR");
+            if(cp) {
+                console.log(cp.data.data.type, " TYPE");
+                //obj.type = cp.data.data.type;
+                obj.content[cp.data.data.entry.name] = {
+                    type : cp.data.data.type
+                }
+            }
 
-        this.outputs.push(output_connector);
+        }
 
-        $t.set(nc.group.node, {
-            y: 33 / 2 + ((input.inputs.length - 1) * 24)//(input.inputs.length < 3) ? 33/2 + (14 * input.inputs.length) : 33/2 + (22 * input.inputs.length)
-        });
+        console.log("data type ", obj);
 
-        $t.to(input.rect.node, .15, {
-            height: (input.inputs.length < 3) ? 33 + ((input.inputs.length - 1) * 10) : 18 + ((input.inputs.length - 1) * 24)
-        });
-
-        input.group.add(nc.group);*/
+        CM.so.update(obj);
 
 
     },
@@ -337,7 +343,6 @@ var NodeBaseProto = {
 
         this.updateLines();
 
-
         $t.set(this.tf, {
             x: MASTRI.x($(this.group.node)) + MASTRI.x($(this.title.node)),
             y: MASTRI.y($(this.group.node)) + MASTRI.y($(this.title.node))
@@ -347,7 +352,10 @@ var NodeBaseProto = {
 
     updateLines: function () {
 
-        for (var a = 0; a < this.inputs.length; a++) {
+        this.inputs.updateAllConnections();
+        this.outputs.updateAllConnections();
+
+        /*for (var a = 0; a < this.inputs.length; a++) {
 
             this.inputs[a].update();
 
@@ -357,7 +365,9 @@ var NodeBaseProto = {
 
             this.outputs[a].drawLine();
 
-        }
+        }*/
+
+
 
     },
 
