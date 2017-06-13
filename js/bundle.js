@@ -21767,10 +21767,6 @@ module.exports = Backbone.View.extend({
             }
         });
 
-/*        $t.set(node_base.group.node, {
-
-        });*/
-
         this.nodes.push(node_base);
         this.workspace.add(node_base.group);
 
@@ -21821,6 +21817,8 @@ var NodeBaseProto = {
 
         this.output_connections = [];
         this.input_connections = [];
+
+        this.obj = {};
 
         this.group = s.group();
 
@@ -22034,8 +22032,6 @@ var NodeBaseProto = {
     //               the output connector  the node  the input connector
     updateStructure: function () {
 
-        console.log("UPDATE STRUCTURE");
-
         var obj = {};
         obj.name = "Structure";
         obj.type = "structure";
@@ -22046,22 +22042,46 @@ var NodeBaseProto = {
             var c = this.inputs.connectors[a];
             var cc = c.connector || null;
             var cp = (cc) ? cc.parentNode : null;
-            console.log(cp, "INPUT CONNECTOR");
+
             if(cp) {
-                console.log(cp.data.data.type, " TYPE");
-                //obj.type = cp.data.data.type;
-                obj.content[cp.data.data.entry.name] = {
-                    type : cp.data.data.type
+
+                var name = cp.data.data.entry.name;
+
+                if(this.obj.hasOwnProperty("content")) {
+                    var s = this.checkUniqueName(name);
+                    //TODO: shouldn't allow you to move forward without a unique name
+                    console.log("NEEDS UNIQUE NAME " , s);
+                    if(s === false) return;
                 }
+
+                obj.content[name + Math.round(Math.random()*10000)] = {
+                    name : name,
+                    type : cp.data.data.type,
+                    value : "value goes here",
+                    //TODO: for form builder - will not show in endpoint api
+                    options : {
+                        required: true
+                    }
+                }
+
             }
 
         }
 
         console.log("data type ", obj);
 
+        this.obj = obj;
+
         CM.so.update(obj);
+        CM.designer.node_manager.update(this);
 
 
+    },
+
+    checkUniqueName : function(name) {
+      for(var a in this.obj.content) {
+        if(a === name) return false;
+      }
     },
 
     removeOutput: function (output_connector) {
@@ -22287,6 +22307,9 @@ module.exports = Backbone.View.extend({
         o.name = node.data.data.entry.name;
         o.local_id = node.local_id;
         o.option_values = node.options.get();
+        if(o.type === "structure") {
+            o.inputs = node.inputs.getConnectionIds();
+        }
 
         $.ajax({
             url : "http://localhost:3000/api/design/",
@@ -22294,8 +22317,8 @@ module.exports = Backbone.View.extend({
             data : o,
             success: function(data, textStatus, jqXHR)
             {
-                console.log("node saved");
-                console.log(data, " < data");
+                //console.log("node saved");
+                //console.log(data, " < data");
             },
             //data - response from server
 
@@ -22331,6 +22354,7 @@ module.exports = Backbone.View.extend({
 
         console.log(data.length, " < DDDAAAATTTTAAAAAAA length");
         for(var a = 0 ; a < data.length ; a++) {
+
             var node = data[a];
             var type = node.type;
             var node_type = CM.node_types.findIndex(function(x) { return x.type === node.type});
@@ -22343,13 +22367,64 @@ module.exports = Backbone.View.extend({
                 entry : ne,
                 position: node.position,
                 local_id : node.local_id,
-                option_values : node.option_values
+                option_values : node.option_values,
+                inputs : node.inputs || null,
+                outputs  : node.outputs || null
+                //connecto array local id values
             }, false);
 
-            this.nodes.push(nb);
+            //this.nodes.push(nb);
+        }
+
+        this.connectNodes();
+
+    },
+
+    connectNodes : function() {
+
+        console.log("CONNECT NODES");
+        console.log(this.nodes.length, " NODES LENGTH");
+
+        for(var a = 0 ; a < this.nodes.length ; a++) {
+
+            var n = this.nodes[a];
+            var d = n.data.data;
+            console.log(d.type, " NODE TYPE !!!");
+
+            //connect first
+            //if(d.type === "group")
+
+            console.log(n, " NNNNNNNNN");
+
+            if(d.type === "structure") {
+                console.log(d, " D TO CONNECT");
+
+                for (var b = 0; b < n.data.data.inputs.length; b++) {
+
+                    console.log(" BBBBBBB : ", b);
+                    var lid = n.data.data.inputs[b];
+                    var output_node = this.findNodeByLocalId(lid);
+                    output_node.outputs.connectOutputToInput(0, b, n);
+                    console.log(output_node, " INPUT NODE");
+
+                }
+
+            }
+
         }
 
     },
+
+    findNodeByLocalId : function(lid) {
+
+        var obj = this.nodes.filter(function ( obj ) {
+            return obj.data.local_id === lid;
+        })[0];
+
+        return obj;
+
+    },
+
 
 /*    handleFind : function(node) {
 
@@ -22768,7 +22843,7 @@ module.exports = Backbone.View.extend({
          */
 
         //TODO: can be replaced with regex
-
+        //injects css classes into <head>
         var s = "<style type='text/css'>";
 
         for(var a = 0 ; a < this.highlights.length ; a++) {
@@ -23013,7 +23088,7 @@ module.exports = Backbone.View.extend({
 
           if(this.cid !== this.last_i.cid) {
 
-              this.trigger("whatever", this, this.last_n, this.last_i)
+              this.trigger("update", this, this.last_n, this.last_i)
               //this.data.node.updateOutput(this, this.last_n, this.last_i);
 
           }
@@ -23049,12 +23124,16 @@ module.exports = Backbone.View.extend({
     },
 
 
-    drawLine : function() {
+    drawLine : function(force_input) {
+
+        if(force_input !== undefined) {
+            this.last_n = true;
+            this.last_i = force_input;
+        }
 
         if(this.last_n) {
 
             var n = $(this.last_i.group.node).closest(".node");
-
             var tn = $(this.group.node).closest(".node");
             var pu = $(this.group.node).parentsUntil(".node");
 
@@ -23072,13 +23151,13 @@ module.exports = Backbone.View.extend({
                     ty += p._gsTransform.y;
                  }
 
-                 console.log(tx, "X");
-                 console.log(ty, "Y");
+                 //console.log(tx, "X");
+                 //console.log(ty, "Y");
 
              }
 
 
-            console.log("y after : " , y);
+            //console.log("y after : " , y);
 
              x = n[0]._gsTransform.x - tn[0]._gsTransform.x - tx;
              y = n[0]._gsTransform.y - tn[0]._gsTransform.y + this.last_i.group.node._gsTransform.y - 16;
@@ -23187,7 +23266,7 @@ module.exports = Backbone.View.extend({
             node: this
         });
 
-        nc.on("whatever", $.proxy(this.update, this));
+        nc.on("update", $.proxy(this.update, this));
 
         this.connectors.push(nc);
 
@@ -23216,6 +23295,8 @@ module.exports = Backbone.View.extend({
         output_connector.connector = input_connector;
         input_connector.connector = output_connector;
 
+        CM.designer.node_manager.update(this.node);
+
         //creates a new input
         input.inputs.add();
 
@@ -23230,6 +23311,34 @@ module.exports = Backbone.View.extend({
         }
     },
 
+    getConnectionIds : function() {
+
+        var arr = [];
+
+        for(var a = 0 ; a < this.connectors.length ; a++) {
+
+            //console.log(this.connectors[a], " CONNECTORS");
+            var c = this.connectors[a];
+            var cc = c.connector;
+            console.log("CC >>>>> : " , cc);
+            if(cc !== null) arr.push(cc.parentNode.local_id)
+
+        }
+
+        return arr;
+
+    },
+
+    connectOutputToInput : function(output_num, input_num, input_node) {
+
+        var output = this.connectors[output_num];
+        var input = input_node.inputs.connectors[input_num];
+        this.update(output, input_node, input);
+        output.drawLine(input);
+
+
+
+    },
 
     remove : function() {
 
@@ -23342,6 +23451,12 @@ module.exports = Backbone.View.extend({
                    name: "Text",
                    label:"TX",
                    options: [
+
+                       {
+                           label: "Character Limits?",
+                           type: "Boolean",
+                           defaultValue: "false"
+                       },
                        {
                            label: "Min Characters",
                            type: "Number",

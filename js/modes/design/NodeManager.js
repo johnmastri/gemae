@@ -102,6 +102,9 @@ module.exports = Backbone.View.extend({
         o.name = node.data.data.entry.name;
         o.local_id = node.local_id;
         o.option_values = node.options.get();
+        if(o.type === "structure") {
+            o.inputs = node.inputs.getConnectionIds();
+        }
 
         $.ajax({
             url : "http://localhost:3000/api/design/",
@@ -109,8 +112,8 @@ module.exports = Backbone.View.extend({
             data : o,
             success: function(data, textStatus, jqXHR)
             {
-                console.log("node saved");
-                console.log(data, " < data");
+                //console.log("node saved");
+                //console.log(data, " < data");
             },
             //data - response from server
 
@@ -146,6 +149,7 @@ module.exports = Backbone.View.extend({
 
         console.log(data.length, " < DDDAAAATTTTAAAAAAA length");
         for(var a = 0 ; a < data.length ; a++) {
+
             var node = data[a];
             var type = node.type;
             var node_type = CM.node_types.findIndex(function(x) { return x.type === node.type});
@@ -158,13 +162,64 @@ module.exports = Backbone.View.extend({
                 entry : ne,
                 position: node.position,
                 local_id : node.local_id,
-                option_values : node.option_values
+                option_values : node.option_values,
+                inputs : node.inputs || null,
+                outputs  : node.outputs || null
+                //connecto array local id values
             }, false);
 
-            this.nodes.push(nb);
+            //this.nodes.push(nb);
+        }
+
+        this.connectNodes();
+
+    },
+
+    connectNodes : function() {
+
+        console.log("CONNECT NODES");
+        console.log(this.nodes.length, " NODES LENGTH");
+
+        for(var a = 0 ; a < this.nodes.length ; a++) {
+
+            var n = this.nodes[a];
+            var d = n.data.data;
+            console.log(d.type, " NODE TYPE !!!");
+
+            //connect first
+            //if(d.type === "group")
+
+            console.log(n, " NNNNNNNNN");
+
+            if(d.type === "structure") {
+                console.log(d, " D TO CONNECT");
+
+                for (var b = 0; b < n.data.data.inputs.length; b++) {
+
+                    console.log(" BBBBBBB : ", b);
+                    var lid = n.data.data.inputs[b];
+                    var output_node = this.findNodeByLocalId(lid);
+                    output_node.outputs.connectOutputToInput(0, b, n);
+                    console.log(output_node, " INPUT NODE");
+
+                }
+
+            }
+
         }
 
     },
+
+    findNodeByLocalId : function(lid) {
+
+        var obj = this.nodes.filter(function ( obj ) {
+            return obj.data.local_id === lid;
+        })[0];
+
+        return obj;
+
+    },
+
 
 /*    handleFind : function(node) {
 

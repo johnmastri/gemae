@@ -84,10 +84,6 @@ module.exports = Backbone.View.extend({
             }
         });
 
-/*        $t.set(node_base.group.node, {
-
-        });*/
-
         this.nodes.push(node_base);
         this.workspace.add(node_base.group);
 

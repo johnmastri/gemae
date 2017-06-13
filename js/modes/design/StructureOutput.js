@@ -53,7 +53,7 @@ module.exports = Backbone.View.extend({
          */
 
         //TODO: can be replaced with regex
-
+        //injects css classes into <head>
         var s = "<style type='text/css'>";
 
         for(var a = 0 ; a < this.highlights.length ; a++) {

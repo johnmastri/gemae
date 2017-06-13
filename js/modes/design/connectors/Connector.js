@@ -179,7 +179,7 @@ module.exports = Backbone.View.extend({
 
           if(this.cid !== this.last_i.cid) {
 
-              this.trigger("whatever", this, this.last_n, this.last_i)
+              this.trigger("update", this, this.last_n, this.last_i)
               //this.data.node.updateOutput(this, this.last_n, this.last_i);
 
           }
@@ -215,12 +215,16 @@ module.exports = Backbone.View.extend({
     },
 
 
-    drawLine : function() {
+    drawLine : function(force_input) {
+
+        if(force_input !== undefined) {
+            this.last_n = true;
+            this.last_i = force_input;
+        }
 
         if(this.last_n) {
 
             var n = $(this.last_i.group.node).closest(".node");
-
             var tn = $(this.group.node).closest(".node");
             var pu = $(this.group.node).parentsUntil(".node");
 
@@ -238,13 +242,13 @@ module.exports = Backbone.View.extend({
                     ty += p._gsTransform.y;
                  }
 
-                 console.log(tx, "X");
-                 console.log(ty, "Y");
+                 //console.log(tx, "X");
+                 //console.log(ty, "Y");
 
              }
 
 
-            console.log("y after : " , y);
+            //console.log("y after : " , y);
 
              x = n[0]._gsTransform.x - tn[0]._gsTransform.x - tx;
              y = n[0]._gsTransform.y - tn[0]._gsTransform.y + this.last_i.group.node._gsTransform.y - 16;

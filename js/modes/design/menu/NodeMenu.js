@@ -17,6 +17,12 @@ module.exports = Backbone.View.extend({
                    name: "Text",
                    label:"TX",
                    options: [
+
+                       {
+                           label: "Character Limits?",
+                           type: "Boolean",
+                           defaultValue: "false"
+                       },
                        {
                            label: "Min Characters",
                            type: "Number",

@@ -24,6 +24,8 @@ var NodeBaseProto = {
         this.output_connections = [];
         this.input_connections = [];
 
+        this.obj = {};
+
         this.group = s.group();
 
         this.group.addClass("node");
@@ -236,8 +238,6 @@ var NodeBaseProto = {
     //               the output connector  the node  the input connector
     updateStructure: function () {
 
-        console.log("UPDATE STRUCTURE");
-
         var obj = {};
         obj.name = "Structure";
         obj.type = "structure";
@@ -248,22 +248,46 @@ var NodeBaseProto = {
             var c = this.inputs.connectors[a];
             var cc = c.connector || null;
             var cp = (cc) ? cc.parentNode : null;
-            console.log(cp, "INPUT CONNECTOR");
+
             if(cp) {
-                console.log(cp.data.data.type, " TYPE");
-                //obj.type = cp.data.data.type;
-                obj.content[cp.data.data.entry.name] = {
-                    type : cp.data.data.type
+
+                var name = cp.data.data.entry.name;
+
+                if(this.obj.hasOwnProperty("content")) {
+                    var s = this.checkUniqueName(name);
+                    //TODO: shouldn't allow you to move forward without a unique name
+                    console.log("NEEDS UNIQUE NAME " , s);
+                    if(s === false) return;
                 }
+
+                obj.content[name + Math.round(Math.random()*10000)] = {
+                    name : name,
+                    type : cp.data.data.type,
+                    value : "value goes here",
+                    //TODO: for form builder - will not show in endpoint api
+                    options : {
+                        required: true
+                    }
+                }
+
             }
 
         }
 
         console.log("data type ", obj);
 
+        this.obj = obj;
+
         CM.so.update(obj);
+        CM.designer.node_manager.update(this);
 
 
+    },
+
+    checkUniqueName : function(name) {
+      for(var a in this.obj.content) {
+        if(a === name) return false;
+      }
     },
 
     removeOutput: function (output_connector) {
